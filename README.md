@@ -36,15 +36,15 @@ Could you please let me know if there are any errors in my English or code?</p>
 
 | メモ設定 | ライティング開始 | 校正 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/f16edf7c-f9d1-4c9e-b5e8-457461bd7fe5" width="200"> | <img src="https://github.com/user-attachments/assets/6df850ab-3c0c-4c5e-a8fb-2847448960d0" width="200"> | <img src="https://github.com/user-attachments/assets/0d54b030-d82a-4f59-8590-b160b531b26f" width="200"> |
+| <img src="https://github.com/user-attachments/assets/f16edf7c-f9d1-4c9e-b5e8-457461bd7fe5" width="200"> | <img src="https://github.com/user-attachments/assets/7fe87e79-57fa-40b3-9119-1520e9587f43" width="200"> | <img src="https://github.com/user-attachments/assets/472b44b2-6da3-4685-b15f-e82b138701f2" width="200"> |
 
 | 修正 | 終了 |  |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/ddc58fc8-8ca0-4398-b49f-64317fb5fb05" width="200"> | <img src="https://github.com/user-attachments/assets/a3f4f7ce-95bf-448f-8e1f-3933f9ffd317" width="200"> |  |
+| <img src="https://github.com/user-attachments/assets/291bffe7-81ae-4fe1-bdd8-4caa79d56c83" width="200"> | <img src="https://github.com/user-attachments/assets/24b45771-6219-4a2e-ae13-dc52c3ae4dbf" width="200"> |  |
 
 | 設定 |  |  |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/c8d292d9-4649-4ab4-aea7-bbbb96545d4b" width="200"> |  |  |
+| <img src="https://github.com/user-attachments/assets/d6490a5b-7255-4819-99a4-380ca9475ad2" width="200"> |  |  |
 
 | トピックの設定 |  |  |
 | ---- | ---- | ---- |
@@ -52,4 +52,4 @@ Could you please let me know if there are any errors in my English or code?</p>
 
 | 練習の見直し　一覧 | 練習の見直し　検索 | 練習の見直し　詳細 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/d6478ba6-e3e2-4381-9786-cb14a3057f6c" width="200"> | <img src="https://github.com/user-attachments/assets/eee2bf73-b0b8-4417-86d1-6aa42a69652e" width="200"> | <img src="https://github.com/user-attachments/assets/57cdea5e-dc84-45fe-9713-0fb9ad4de14b" width="200"> |
+| <img src="https://github.com/user-attachments/assets/d6478ba6-e3e2-4381-9786-cb14a3057f6c" width="200"> | <img src="https://github.com/user-attachments/assets/eee2bf73-b0b8-4417-86d1-6aa42a69652e" width="200"> | <img src="https://github.com/user-attachments/assets/0b70e20e-b9da-4ae6-af3a-bade40a0ea26" width="200"> |
