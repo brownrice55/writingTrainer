@@ -30,7 +30,20 @@ Could you please let me know if there are any errors in my English or code?</p>
 
 ## 大まかなイメージ
 
-| スタート |  |  |
+### グローバルメニュー
+<ul>
+<li>練習</li>
+<li>過去の練習一覧</li>
+<li>テンプレート設定</li>
+<li>トピック設定</li>
+</ul>
+
+### ワイヤーフレーム
+| テンプレート設定 | トピックの設定 |  |
+| ---- | ---- | ---- |
+| <img src="https://github.com/user-attachments/assets/2aa04062-901b-4175-9ebe-f9e4bb9578c1" width="200"> | <img src="https://github.com/user-attachments/assets/8aaf14f1-6bb0-43e4-a15c-b1c75079ecb8" width="200"> |  |
+
+| 練習スタート（設定後top） |  |  |
 | ---- | ---- | ---- |
 | <img src="https://github.com/user-attachments/assets/82da24fa-e53e-4b6b-a341-55d6bbbf916d" width="200"> |  |  |
 
@@ -42,14 +55,13 @@ Could you please let me know if there are any errors in my English or code?</p>
 | ---- | ---- | ---- |
 | <img src="https://github.com/user-attachments/assets/291bffe7-81ae-4fe1-bdd8-4caa79d56c83" width="200"> | <img src="https://github.com/user-attachments/assets/24b45771-6219-4a2e-ae13-dc52c3ae4dbf" width="200"> |  |
 
-| 設定 |  |  |
-| ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/d6490a5b-7255-4819-99a4-380ca9475ad2" width="200"> |  |  |
-
-| トピックの設定 |  |  |
-| ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/3569d334-a698-413c-8688-a850ca33dcbe" width="200"> |  |  |
-
 | 練習の見直し　一覧 | 練習の見直し　検索 | 練習の見直し　詳細 |
 | ---- | ---- | ---- |
 | <img src="https://github.com/user-attachments/assets/d6478ba6-e3e2-4381-9786-cb14a3057f6c" width="200"> | <img src="https://github.com/user-attachments/assets/eee2bf73-b0b8-4417-86d1-6aa42a69652e" width="200"> | <img src="https://github.com/user-attachments/assets/0b70e20e-b9da-4ae6-af3a-bade40a0ea26" width="200"> |
+
+
+## 参考
+<ul>
+<li>https://getbootstrap.jp/</li>
+<li>https://qiita.com/vossibop/items/558591f09b20b429da03</li>
+</ul>

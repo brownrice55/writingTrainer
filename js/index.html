@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <link href="./dest/css/index.css" rel="stylesheet"> -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <title>writing Trainer</title>
+</head>
+<body>
+  <header class="header js-header mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light px-2">
+      <div class="navbar-brand">Writing Trainer</div>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbar">
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+          <li class="nav-item py-2 active">練習</li>
+          <li class="nav-item py-2">過去の練習一覧</li>
+          <li class="nav-item py-2">テンプレート設定</li>
+          <li class="nav-item py-2">トピック設定</li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+  <main class="js-main container">
+    <section class="js-practice d-none">
+      <p>設定とトピックを選んで「スタート」を押してください。</p>
+      <div class="row p-1">
+        <label class="form-label">テンプレート</label>
+        <select class="form-select mx-2 mb-3 js-formInput">
+          <option value="">新しくテンプレートを設定する</option>
+        </select>
+      </div>
+      <div class="row p-1">
+        <label class="form-label">トピック</label>
+        <select class="form-select mx-2 mb-3 js-formInput">
+          <option value="">新しくトピックを設定する</option>
+        </select>
+      </div>
+      <div class="row m-2">
+        <button class="btn btn-primary p-3 w-75 mx-auto">スタート</button>
+      </div>
+    </section>
+    <section class="js-list d-none">
+      <div class="row">
+        <h2 class="lead col">過去の練習内容の一覧</h2>
+        <div class="text-end col">
+          <button class="btn btn-secondary p-1 px-2 mx-2" data-bs-toggle="collapse" data-bs-target="#filter" aria-expand="false" aria-controls="filter">絞り込み</button>
+        </div>
+      </div>
+      <div class="bg-secondary text-white p-2 mx-2 collapse" id="filter">
+        <div class="row p-1">
+          <div class="col-4">
+            設定名
+          </div>
+          <div class="col-8">
+            <select class="form-select">
+              <option value="">英検１級のエッセイの練習</option>
+            </select>
+          </div>
+        </div>
+        <div class="row p-1">
+          <div class="col-4">
+            トピック
+          </div>
+          <div class="col-8">
+            <select class="form-select">
+              <option value="">英文のトピックが入ります</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="border rounded p-2 py-3 m-3">
+        <ul>
+          <li>設定：英検１級のエッセイの練習</li>
+          <li>トピック：英文のトピックが入ります</li>
+          <li>実施日時：2025/3/27 11:00〜11:25</li>
+          <li>時間配分：メモ2分30秒、ライティング20分20秒、校正2分10秒</li>
+        </ul>
+        <div class="text-end">
+          <button class="btn btn-primary p-1 px-2 mx-2">確認する</button>
+        </div>
+      </div>
+    </section>
+    <section class="js-templateSettings">
+      <h1 class="lead">テンプレート設定</h1>
+      <div class="row p-1">
+        <label class="form-label">設定名</label>
+        <input type="text" class="form-control mx-2 mb-3 js-formInput">
+      </div>
+      <h2 class="lead">書式設定</h2>
+      <div class="row p-1">
+        <label class="form-label">段落数</label>
+        <select class="form-select mx-2 mb-3 js-formInput">
+          <option value="1">1段落</option>
+          <option value="2">2段落</option>
+          <option value="3">3段落</option>
+          <option value="4">4段落</option>
+        </select>
+      </div>
+      <div class="row p-1">
+        <label class="form-label">文字数</label>
+        <div class="row mb-3 mx-auto text-center">
+          <div class="col"><input type="number" class="form-control js-formInput" value="200"></div>
+          <div class="col">〜</div>
+          <div class="col"><input type="number" class="form-control js-formInput" value="240"></div>
+        </div>
+      </div>
+      <h2 class="lead">時間制限・配分</h2>
+      <div class="row p-1">
+        <label class="form-label">合計</label>
+        <select class="form-select mx-2 mb-3 js-formInput">
+          <option value="1">1分</option>
+          <option value="2">2分</option>
+          <option value="3">3分</option>
+          <option value="4">4分</option>
+        </select>
+      </div>
+      <div class="row p-1">
+        <label class="form-label">方向性・構成を決める時間</label>
+        <select class="form-select mx-2 mb-3 js-formInput">
+          <option value="1">1分</option>
+          <option value="2">2分</option>
+          <option value="3">3分</option>
+          <option value="4">4分</option>
+        </select>
+      </div>
+      <div class="row p-1">
+        <label class="form-label">文章を書く時間</label>
+        <select class="form-select mx-2 mb-3 js-formInput">
+          <option value="1">1分</option>
+          <option value="2">2分</option>
+          <option value="3">3分</option>
+          <option value="4">4分</option>
+        </select>
+      </div>
+      <div class="row p-1">
+        <label class="form-label">校正する時間</label>
+        <select class="form-select mx-2 mb-3 js-formInput">
+          <option value="1">1分</option>
+          <option value="2">2分</option>
+          <option value="3">3分</option>
+          <option value="4">4分</option>
+        </select>
+      </div>
+      <div class="js-saveSettingsBtn row m-2">
+        <button class="btn btn-primary p-3 w-75 mx-auto">保存する</button>
+      </div>
+    </section>
+    <section class="js-topicSettings d-none">
+      <h2 class="lead">トピック設定</h2>
+      <div class="row p-1">
+        <input type="text" class="form-control mx-2 mb-3 js-formInput">
+      </div>
+      <div class="row p-1">
+        <input type="text" class="form-control mx-2 mb-3 js-formInput">
+      </div>
+      <div class="js-saveSettingsBtn row m-2">
+        <button class="btn btn-primary p-3 w-75 mx-auto">保存する</button>
+      </div>
+    </section>
+  </main>
+  <script src="./dest/js/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+</body>
+</html>
