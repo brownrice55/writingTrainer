@@ -90,67 +90,80 @@
     </section>
     <section class="js-templateSettings d-none">
       <h1 class="lead">テンプレート設定</h1>
-      <div class="row p-1">
-        <label class="form-label">設定名</label>
-        <input type="text" class="form-control mx-2 mb-3 js-formInput">
-      </div>
-      <h2 class="lead">書式設定</h2>
-      <div class="row p-1">
-        <label class="form-label">段落数</label>
-        <select class="form-select mx-2 mb-3 js-formInput">
-          <option value="1">1段落</option>
-          <option value="2">2段落</option>
-          <option value="3">3段落</option>
-          <option value="4">4段落</option>
-        </select>
-      </div>
-      <div class="row p-1">
-        <label class="form-label">文字数</label>
-        <div class="row mb-3 mx-auto text-center">
-          <div class="col"><input type="number" class="form-control js-formInput" value="200"></div>
-          <div class="col">〜</div>
-          <div class="col"><input type="number" class="form-control js-formInput" value="240"></div>
+      <nav class="my-4">
+        <div class="nav nav-tabs js-navTab" role="tablist">
+          <button class="nav-link active" id="nav-list-tab" data-bs-toggle="tab" data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-list" aria-selected="true">テンプレート一覧</button>
+          <button class="nav-link" id="nav-add-tab" data-bs-toggle="tab" data-bs-target="#nav-add" type="button" role="tab" aria-controls="nav-add" aria-selected="false">テンプレート追加</button>
         </div>
-      </div>
-      <h2 class="lead">時間制限・配分</h2>
-      <div class="row p-1">
-        <label class="form-label">合計</label>
-        <select class="form-select mx-2 mb-3 js-formInput">
-          <option value="1">1分</option>
-          <option value="2">2分</option>
-          <option value="3">3分</option>
-          <option value="4">4分</option>
-        </select>
-      </div>
-      <div class="row p-1">
-        <label class="form-label">方向性・構成を決める時間</label>
-        <select class="form-select mx-2 mb-3 js-formInput">
-          <option value="1">1分</option>
-          <option value="2">2分</option>
-          <option value="3">3分</option>
-          <option value="4">4分</option>
-        </select>
-      </div>
-      <div class="row p-1">
-        <label class="form-label">文章を書く時間</label>
-        <select class="form-select mx-2 mb-3 js-formInput">
-          <option value="1">1分</option>
-          <option value="2">2分</option>
-          <option value="3">3分</option>
-          <option value="4">4分</option>
-        </select>
-      </div>
-      <div class="row p-1">
-        <label class="form-label">校正する時間</label>
-        <select class="form-select mx-2 mb-3 js-formInput">
-          <option value="1">1分</option>
-          <option value="2">2分</option>
-          <option value="3">3分</option>
-          <option value="4">4分</option>
-        </select>
-      </div>
-      <div class="row m-2">
-        <button class="btn btn-primary p-3 w-75 mx-auto js-saveSettingsBtn">保存する</button>
+      </nav>
+      <div class="tab-content js-navTabContent">
+        <div class="tab-pane fade show active" id="nav-list" role="tabpanel" aria-labelledby="nav-list-tab">
+          <ul class="js-templateListUl templateListUl"></ul>
+        </div>
+        <div class="tab-pane fade" id="nav-add" role="tabpanel" aria-labelledby="nav-add-tab">
+          <div class="row p-1">
+            <label class="form-label">設定名</label>
+            <input type="text" class="form-control mx-2 mb-3 js-formInput">
+          </div>
+          <h2 class="lead">書式設定</h2>
+          <div class="row p-1">
+            <label class="form-label">段落数</label>
+            <select class="form-select mx-2 mb-3 js-formInput">
+              <option value="1">1段落</option>
+              <option value="2">2段落</option>
+              <option value="3">3段落</option>
+              <option value="4">4段落</option>
+            </select>
+          </div>
+          <div class="row p-1">
+            <label class="form-label">文字数</label>
+            <div class="row mb-3 mx-auto text-center">
+              <div class="col"><input type="number" class="form-control js-formInput" value="200"></div>
+              <div class="col">〜</div>
+              <div class="col"><input type="number" class="form-control js-formInput" value="240"></div>
+            </div>
+          </div>
+          <h2 class="lead">時間制限・配分</h2>
+          <div class="row p-1">
+            <label class="form-label">合計</label>
+            <select class="form-select mx-2 mb-3 js-formInput">
+              <option value="1">1分</option>
+              <option value="2">2分</option>
+              <option value="3">3分</option>
+              <option value="4">4分</option>
+            </select>
+          </div>
+          <div class="row p-1">
+            <label class="form-label">方向性・構成を決める時間</label>
+            <select class="form-select mx-2 mb-3 js-formInput">
+              <option value="1">1分</option>
+              <option value="2">2分</option>
+              <option value="3">3分</option>
+              <option value="4">4分</option>
+            </select>
+          </div>
+          <div class="row p-1">
+            <label class="form-label">文章を書く時間</label>
+            <select class="form-select mx-2 mb-3 js-formInput">
+              <option value="1">1分</option>
+              <option value="2">2分</option>
+              <option value="3">3分</option>
+              <option value="4">4分</option>
+            </select>
+          </div>
+          <div class="row p-1">
+            <label class="form-label">校正する時間</label>
+            <select class="form-select mx-2 mb-3 js-formInput">
+              <option value="1">1分</option>
+              <option value="2">2分</option>
+              <option value="3">3分</option>
+              <option value="4">4分</option>
+            </select>
+          </div>
+          <div class="row m-2">
+            <button class="btn btn-primary p-3 w-75 mx-auto js-saveSettingsBtn">保存する</button>
+          </div>
+        </div>
       </div>
     </section>
     <section class="js-topicSettings d-none">

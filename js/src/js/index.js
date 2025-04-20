@@ -69,6 +69,13 @@
     this.templateData = templateDataGlobal;
     this.templateSettingsElm = document.querySelector('.js-templateSettings');
     this.templateSettingsFormInputElms = this.templateSettingsElm.querySelectorAll('.js-formInput');
+    this.templateListUlElm = document.querySelector('.js-templateListUl');
+
+    this.isEdit = false;
+    this.editTemplateId = 0;
+
+    this.navTabBtnElms = document.querySelectorAll('.js-navTab button');
+    this.navTabContentDivElms = document.querySelectorAll('.js-navTabContent > div');
 
     this.topicData = topicDataGlobal;
     this.topicSettingsElm = document.querySelector('.js-topicSettings');
@@ -81,6 +88,55 @@
     this.saveTopicBtnElm = this.saveBtnElms[1];
   };
 
+  Settings.prototype.editTemplateData = function(aCnt) {
+    this.isEdit = true;
+
+    this.editTemplateId = aCnt+1;
+    let dataGottenForEdit = this.templateData.get(this.editTemplateId);
+    
+    this.navTabContentDivElms[0].className = 'tab-pane fade';
+    this.navTabContentDivElms[1].className = 'tab-pane fade show active';
+
+    this.templateSettingsFormInputElms[0].value = dataGottenForEdit.templatename;
+    this.templateSettingsFormInputElms[1].value = dataGottenForEdit.paragraphs;
+    this.templateSettingsFormInputElms[2].value = dataGottenForEdit.min;
+    this.templateSettingsFormInputElms[3].value = dataGottenForEdit.max;
+    this.templateSettingsFormInputElms[4].value = dataGottenForEdit.total;
+    this.templateSettingsFormInputElms[5].value = dataGottenForEdit.planningtime;
+    this.templateSettingsFormInputElms[6].value = dataGottenForEdit.writingtime;
+    this.templateSettingsFormInputElms[7].value = dataGottenForEdit.proofreadingtime;
+
+    this.saveTemplateBtnElm.textContent = '上書き保存する';
+    // this.saveTemplateBtnElm.disabled = true;　後で対応（差分が出た時のみ活性化）
+  };
+
+  Settings.prototype.displayTemplateListData = function() {
+    let listTemplateData = '';
+    this.templateData.forEach((value, key) => {
+      listTemplateData += '<li>' + value.templatename + '</li>';
+    });
+    this.templateListUlElm.innerHTML = listTemplateData;
+
+    const that = this;
+    let listTemplateElms = this.templateListUlElm.querySelectorAll('li');
+    for(let cnt=0,len=listTemplateElms.length;cnt<len;++cnt) {
+      listTemplateElms[cnt].addEventListener('click', function() {
+        that.editTemplateData(cnt);
+      });
+    }
+  };
+
+  Settings.prototype.resetAddTemplatePage = function() {
+    this.templateSettingsFormInputElms[0].value = '';
+    this.templateSettingsFormInputElms[1].value = '';
+    this.templateSettingsFormInputElms[2].value = '';
+    this.templateSettingsFormInputElms[3].value = '';
+    this.templateSettingsFormInputElms[4].value = '';
+    this.templateSettingsFormInputElms[5].value = '';
+    this.templateSettingsFormInputElms[6].value = '';
+    this.templateSettingsFormInputElms[7].value = '';
+  };
+
   Settings.prototype.displayTopicData = function() {
     let topicInputData = '';
     for(let cnt=0,len=this.topicData.length;cnt<len;++cnt) {
@@ -91,16 +147,7 @@
   };
 
   Settings.prototype.saveData = function(aPage) {
-    if(aPage=='template') {
-      if(!this.templateSettingsFormInputElms[0].value) {
-        return;
-      }
-      this.templateData.set(0, { templatename:this.templateSettingsFormInputElms[0].value, paragraphs:this.templateSettingsFormInputElms[1].value, min:this.templateSettingsFormInputElms[2].value, max:this.templateSettingsFormInputElms[3].value, total:this.templateSettingsFormInputElms[4].value, planningtime:this.templateSettingsFormInputElms[5].value, writingtime:this.templateSettingsFormInputElms[6].value, proofreadingtime:this.templateSettingsFormInputElms[7].value});
-      localStorage.setItem('writingTrainerTemplateData', JSON.stringify([...this.templateData]));
-      this.templateSettingsFormInputElms[0].value = '';
-      // ***　後で追加　一覧ページへ移動
-    }
-    else { // topic
+    if(aPage=='topic') {
       let inputElms = this.topicInputAreaElm.querySelectorAll('input');
       let array = [];
       let index = 0;
@@ -118,6 +165,21 @@
       let switchPages = new SwitchPages();
       switchPages.resetPages();
       switchPages.setPage();
+    }
+    else {
+      if(!this.templateSettingsFormInputElms[0].value) {
+        return;
+      }
+      let id = (this.isEdit) ? this.editTemplateId : this.templateData.size+1;
+      this.templateData.set(id, { templatename:this.templateSettingsFormInputElms[0].value, paragraphs:this.templateSettingsFormInputElms[1].value, min:this.templateSettingsFormInputElms[2].value, max:this.templateSettingsFormInputElms[3].value, total:this.templateSettingsFormInputElms[4].value, planningtime:this.templateSettingsFormInputElms[5].value, writingtime:this.templateSettingsFormInputElms[6].value, proofreadingtime:this.templateSettingsFormInputElms[7].value});
+      localStorage.setItem('writingTrainerTemplateData', JSON.stringify([...this.templateData]));
+
+      this.templateSettingsFormInputElms[0].value = '';
+      
+      this.displayTemplateListData();
+      this.navTabContentDivElms[0].className = 'tab-pane fade show active';
+      this.navTabContentDivElms[1].className = 'tab-pane fade';
+      this.isEdit = false;
     }
   };
 
@@ -137,9 +199,16 @@
     this.saveTopicBtnElm.addEventListener('click', function() {
       that.saveData('topic');
     });
+
+    this.navTabBtnElms[1].addEventListener('click', function() {
+      that.resetAddTemplatePage();
+    });
   };
 
   Settings.prototype.run = function() {
+    if(this.templateData.size) {
+      this.displayTemplateListData();
+    }
     if(this.topicData.length) {
       this.displayTopicData();
     }

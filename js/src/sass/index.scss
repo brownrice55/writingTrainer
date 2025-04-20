@@ -1,3 +1,8 @@
-.nav-item {
+.nav-item, {
   cursor: pointer;
+}
+
+.templateListUl > li {
+  cursor: pointer;
+  line-height: 2.4;
 }

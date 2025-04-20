@@ -41,7 +41,7 @@ Could you please let me know if there are any errors in my English or code?</p>
 ### ワイヤーフレーム
 | テンプレート設定（一覧・編集・削除） | テンプレート新規追加 |  |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/49033ec6-7ef9-47ec-a71d-d88dd351a7c7" width="200"> | <img src="https://github.com/user-attachments/assets/a8c9bc71-df64-4ed3-91e8-f3920f56b976" width="200"> |  |
+| <img src="https://github.com/user-attachments/assets/211d0625-50e2-47fa-9bed-590318d682e3" width="200"> | <img src="https://github.com/user-attachments/assets/2dfe5c07-5dcd-4999-b512-849eca4b2ef4" width="200"> |  |
 
 | トピック設定 |  |  |
 | ---- | ---- | ---- |
