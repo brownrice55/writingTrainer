@@ -32,9 +32,6 @@
     if(!templateDataGlobal.size) {
       this.sectionElms[2].classList.remove('d-none');
     }
-    else if(!topicDataGlobal.length) {
-      this.sectionElms[3].classList.remove('d-none');
-    }
     else {
       this.sectionElms[0].classList.remove('d-none');
     }
@@ -74,7 +71,11 @@
     this.isEdit = false;
     this.editTemplateId = 0;
 
-    this.navTabBtnElms = document.querySelectorAll('.js-navTab button');
+    this.backToListBtnElm = document.querySelector('.js-backToList button');
+    this.backToListElm = this.backToListBtnElm.parentNode;
+
+    this.navTabElm = document.querySelector('.js-navTab');
+    this.navTabBtnElms = this.navTabElm.querySelectorAll('button');
     this.navTabContentDivElms = document.querySelectorAll('.js-navTabContent > div');
 
     this.topicData = topicDataGlobal;
@@ -88,8 +89,28 @@
     this.saveTopicBtnElm = this.saveBtnElms[1];
   };
 
+  Settings.prototype.setNavState = function(aState) {
+    if(aState=='initial') {
+      this.navTabElm.classList.add('d-none');
+      this.navTabContentDivElms[0].className = 'tab-pane fade';
+      this.navTabContentDivElms[1].className = 'tab-pane fade show active';
+    }
+    else {
+      this.navTabElm.classList.remove('d-none');
+      this.navTabContentDivElms[0].className = 'tab-pane fade show active'; 
+      this.navTabContentDivElms[1].className = 'tab-pane fade';
+    }
+  };
+
+  Settings.prototype.initialState = function() {
+    this.setNavState('initial');
+    this.backToListElm.classList.add('d-none');
+    this.resetAddTemplatePage();
+  };
+
   Settings.prototype.editTemplateData = function(aCnt) {
     this.isEdit = true;
+    this.backToListElm.classList.remove('d-none');
 
     this.editTemplateId = aCnt+1;
     let dataGottenForEdit = this.templateData.get(this.editTemplateId);
@@ -111,6 +132,7 @@
   };
 
   Settings.prototype.displayTemplateListData = function() {
+    this.setNavState('notInitial');
     let listTemplateData = '';
     this.templateData.forEach((value, key) => {
       listTemplateData += '<li>' + value.templatename + '</li>';
@@ -127,14 +149,26 @@
   };
 
   Settings.prototype.resetAddTemplatePage = function() {
+    this.backToListElm.classList.add('d-none');
+    this.saveTemplateBtnElm.textContent = '保存する';
+
+    const getOptionData = (aMin, aMax, aUnit) => {
+      let option = '';
+      for(let cnt=0;cnt<aMax;++cnt) {
+        option += '<option value="' + (cnt+aMin) + '">' + (cnt+aMin) + aUnit + '</option>';
+      }
+      return option;
+    };
+
     this.templateSettingsFormInputElms[0].value = '';
-    this.templateSettingsFormInputElms[1].value = '';
-    this.templateSettingsFormInputElms[2].value = '';
-    this.templateSettingsFormInputElms[3].value = '';
-    this.templateSettingsFormInputElms[4].value = '';
-    this.templateSettingsFormInputElms[5].value = '';
-    this.templateSettingsFormInputElms[6].value = '';
-    this.templateSettingsFormInputElms[7].value = '';
+    this.templateSettingsFormInputElms[1].innerHTML = getOptionData(1, 10, '段落');
+    this.templateSettingsFormInputElms[2].value = 200;
+    this.templateSettingsFormInputElms[3].value = 240;
+    this.templateSettingsFormInputElms[4].innerHTML = getOptionData(1, 300, '分');
+    this.templateSettingsFormInputElms[5].innerHTML = getOptionData(0, 300, '分');
+    this.templateSettingsFormInputElms[6].innerHTML = getOptionData(0, 300, '分');
+    this.templateSettingsFormInputElms[7].innerHTML = getOptionData(0, 300, '分');
+
   };
 
   Settings.prototype.displayTopicData = function() {
@@ -180,10 +214,21 @@
       this.navTabContentDivElms[0].className = 'tab-pane fade show active';
       this.navTabContentDivElms[1].className = 'tab-pane fade';
       this.isEdit = false;
+      this.backToListElm.classList.add('d-none');
     }
   };
 
   Settings.prototype.setEvent = function() {
+    if(!this.templateData.size) {
+      this.initialState();
+    }
+    else {
+      this.displayTemplateListData();
+    }
+    if(this.topicData.length) {
+      this.displayTopicData();
+    }
+
     const that = this;
     this.saveTemplateBtnElm.addEventListener('click', function() {
       that.saveData('template');
@@ -203,15 +248,14 @@
     this.navTabBtnElms[1].addEventListener('click', function() {
       that.resetAddTemplatePage();
     });
+
+    this.backToListBtnElm.addEventListener('click', function() {
+      that.navTabContentDivElms[0].className = 'tab-pane fade show active';
+      that.navTabContentDivElms[1].className = 'tab-pane fade';
+    });
   };
 
   Settings.prototype.run = function() {
-    if(this.templateData.size) {
-      this.displayTemplateListData();
-    }
-    if(this.topicData.length) {
-      this.displayTopicData();
-    }
     this.setEvent();
   };
 
