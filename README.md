@@ -39,13 +39,17 @@ Could you please let me know if there are any errors in my English or code?</p>
 </ul>
 
 ### ワイヤーフレーム
-| テンプレート設定 | トピックの設定 |  |
+| テンプレート設定（一覧・編集・削除） | テンプレート新規追加 |  |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/2aa04062-901b-4175-9ebe-f9e4bb9578c1" width="200"> | <img src="https://github.com/user-attachments/assets/8aaf14f1-6bb0-43e4-a15c-b1c75079ecb8" width="200"> |  |
+| <img src="https://github.com/user-attachments/assets/49033ec6-7ef9-47ec-a71d-d88dd351a7c7" width="200"> | <img src="https://github.com/user-attachments/assets/a8c9bc71-df64-4ed3-91e8-f3920f56b976" width="200"> |  |
+
+| トピック設定 |  |  |
+| ---- | ---- | ---- |
+| <img src="https://github.com/user-attachments/assets/f8a64426-0c0e-4a09-8619-db7e8047a710" width="200"> |  |  |
 
 | 練習スタート（設定後top） |  |  |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/82da24fa-e53e-4b6b-a341-55d6bbbf916d" width="200"> |  |  |
+| <img src="https://github.com/user-attachments/assets/17764e2c-f467-444e-8e4b-d27c8fee4aee" width="200"> |  |  |
 
 | メモ設定 | ライティング開始 | 校正 |
 | ---- | ---- | ---- |
@@ -57,11 +61,11 @@ Could you please let me know if there are any errors in my English or code?</p>
 
 | 練習の見直し　一覧 | 練習の見直し　検索 | 練習の見直し　詳細 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/d6478ba6-e3e2-4381-9786-cb14a3057f6c" width="200"> | <img src="https://github.com/user-attachments/assets/eee2bf73-b0b8-4417-86d1-6aa42a69652e" width="200"> | <img src="https://github.com/user-attachments/assets/0b70e20e-b9da-4ae6-af3a-bade40a0ea26" width="200"> |
+| <img src="https://github.com/user-attachments/assets/d6478ba6-e3e2-4381-9786-cb14a3057f6c" width="200"> | <img src="https://github.com/user-attachments/assets/eee2bf73-b0b8-4417-86d1-6aa42a69652e" width="200"> | <img src="https://github.com/user-attachments/assets/d236bec6-3fd0-4c00-b459-7144d751922c" width="200"> |
 
 
 ## 参考
 <ul>
 <li>https://getbootstrap.jp/</li>
-<li>https://qiita.com/vossibop/items/558591f09b20b429da03</li>
+<li>https://developer.mozilla.org/ja/docs/Web/HTML/Reference/Elements/datalist</li>
 </ul>

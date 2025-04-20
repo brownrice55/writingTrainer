@@ -3,45 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- <link href="./dest/css/index.css" rel="stylesheet"> -->
+  <link href="./dest/css/index.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
   <title>writing Trainer</title>
 </head>
 <body>
   <header class="header js-header mb-4">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light px-2">
-      <div class="navbar-brand">Writing Trainer</div>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbar">
-        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-          <li class="nav-item py-2 active">練習</li>
-          <li class="nav-item py-2">過去の練習一覧</li>
-          <li class="nav-item py-2">テンプレート設定</li>
-          <li class="nav-item py-2">トピック設定</li>
-        </ul>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+      <div class="container-fluid">
+        <div class="navbar-brand">Writing Trainer</div>
+        <button class="navbar-toggler js-navbarBtn" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse js-globalMenu" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item py-2 active">練習</li>
+            <li class="nav-item py-2">過去の練習一覧</li>
+            <li class="nav-item py-2">テンプレート設定</li>
+            <li class="nav-item py-2">トピック設定</li>
+          </ul>
+        </div>
       </div>
     </nav>
   </header>
   <main class="js-main container">
-    <section class="js-practice d-none">
-      <p>設定とトピックを選んで「スタート」を押してください。</p>
-      <div class="row p-1">
-        <label class="form-label">テンプレート</label>
-        <select class="form-select mx-2 mb-3 js-formInput">
-          <option value="">新しくテンプレートを設定する</option>
-        </select>
+    <section class="d-none">
+      <div class="js-practice">
+        <p>設定とトピックを決めて、「スタート」を押してください。</p>
+        <div class="row p-1">
+          <label class="form-label">テンプレート</label>
+          <select class="form-select mx-2 mb-3 js-formInput">
+            <option value="">新しくテンプレートを設定する</option>
+          </select>
+        </div>
+        <div class="row p-1">
+          <label for="inputTopic" class="form-label">トピック</label>
+          <input class="form-control mx-2 mb-3" list="datalistInputTopic" id="inputTopic" placeholder="トピックを入力または選択してください">
+          <datalist id="datalistInputTopic" class="js-formInput"></datalist>
+        </div>  
+        <div class="row m-2">
+          <button class="btn btn-primary p-3 w-75 mx-auto">スタート</button>
+        </div>  
       </div>
-      <div class="row p-1">
-        <label class="form-label">トピック</label>
-        <select class="form-select mx-2 mb-3 js-formInput">
-          <option value="">新しくトピックを設定する</option>
-        </select>
-      </div>
-      <div class="row m-2">
-        <button class="btn btn-primary p-3 w-75 mx-auto">スタート</button>
-      </div>
+      <div class="js-practice"></div>
     </section>
     <section class="js-list d-none">
       <div class="row">
@@ -84,7 +88,7 @@
         </div>
       </div>
     </section>
-    <section class="js-templateSettings">
+    <section class="js-templateSettings d-none">
       <h1 class="lead">テンプレート設定</h1>
       <div class="row p-1">
         <label class="form-label">設定名</label>
@@ -145,20 +149,20 @@
           <option value="4">4分</option>
         </select>
       </div>
-      <div class="js-saveSettingsBtn row m-2">
-        <button class="btn btn-primary p-3 w-75 mx-auto">保存する</button>
+      <div class="row m-2">
+        <button class="btn btn-primary p-3 w-75 mx-auto js-saveSettingsBtn">保存する</button>
       </div>
     </section>
     <section class="js-topicSettings d-none">
       <h2 class="lead">トピック設定</h2>
-      <div class="row p-1">
-        <input type="text" class="form-control mx-2 mb-3 js-formInput">
+      <div class="row p-1 js-topicInputArea">
+        <input type="text" class="form-control mx-2 mb-3">
       </div>
-      <div class="row p-1">
-        <input type="text" class="form-control mx-2 mb-3 js-formInput">
+      <div class="text-end">
+        <button class="btn btn-primary p-1 px-2 mx-2 mb-4 js-addTopicBtn">トピックを追加する</button>
       </div>
-      <div class="js-saveSettingsBtn row m-2">
-        <button class="btn btn-primary p-3 w-75 mx-auto">保存する</button>
+      <div class="row m-2">
+        <button class="btn btn-primary p-3 w-75 mx-auto js-saveSettingsBtn">保存する</button>
       </div>
     </section>
   </main>
