@@ -152,50 +152,40 @@
 
       for(let cnt=5;cnt<=7;++cnt) {
         this.templateSettingsFormInputElms[cnt].parentNode.classList.add('d-none');
+        this.templateSettingsFormInputElms[cnt].value = 0;
       }
     }
     this.saveTemplateBtnElm.disabled = true;
   };
 
+  Settings.prototype.checkAmount = function() {
+    let input4Value = parseInt(this.templateSettingsFormInputElms[4].value);
+    let input5Value = parseInt(this.templateSettingsFormInputElms[5].value);
+    let input6Value = parseInt(this.templateSettingsFormInputElms[6].value);
+    let input7Value = parseInt(this.templateSettingsFormInputElms[7].value);
+    this.isMatched = (input4Value===(input5Value+input6Value+input7Value)) ? true : false;
+    
+    if(!this.isMatched) {
+      this.formAlertElms[2].textContent = '合計の時間数が合っていません';
+      for(let cnt=5;cnt<=7;++cnt) {
+        this.templateSettingsFormInputElms[cnt].classList.add('formAlert');
+      }  
+    }
+    else {
+      this.formAlertElms[2].textContent = '';
+      for(let cnt=5;cnt<=7;++cnt) {
+        this.templateSettingsFormInputElms[cnt].classList.remove('formAlert');
+      } 
+    }
+
+    if(this.templateSettingsFormInputElms[0].value) {
+      this.saveTemplateBtnElm.disabled = !this.isMatched;
+    }
+  };
+
   Settings.prototype.checkInputBeforeSave = function() {
     const that = this;
-
-    this.templateSettingsFormInputElms[4].addEventListener('change', function() {  
-      for(let cnt=5;cnt<=7;++cnt) {
-        that.templateSettingsFormInputElms[cnt].parentNode.classList.remove('d-none');
-      }
-
-      let input4Value = this.value;
-      let arrayInputValueIndex5to7 = Array(3);
-
-      if(that.isEdit) {
-        for(let cnt=0;cnt<3;++cnt) {
-          arrayInputValueIndex5to7[cnt] = that.templateSettingsFormInputElms[(cnt+5)].value;
-        }
-      }
-
-      that.templateSettingsFormInputElms[4].innerHTML = that.getOptionData(1, 300, '分');
-      that.templateSettingsFormInputElms[4].value = input4Value;
-
-      for(let cnt=5;cnt<=7;++cnt) {
-        that.templateSettingsFormInputElms[cnt].innerHTML = that.getOptionData(0, input4Value, '分');
-      }
-      
-      if(that.isEdit) {
-        for(let cnt=0;cnt<3;++cnt) {
-          that.templateSettingsFormInputElms[(cnt+5)].value = arrayInputValueIndex5to7[cnt];
-        }
-      }
-    });
-
     this.isMatched = false;
-    const checkAmount = () => {
-      let input4Value = parseInt(that.templateSettingsFormInputElms[4].value);
-      let input5Value = parseInt(that.templateSettingsFormInputElms[5].value);
-      let input6Value = parseInt(that.templateSettingsFormInputElms[6].value);
-      let input7Value = parseInt(that.templateSettingsFormInputElms[7].value);
-      this.isMatched = (input4Value===(input5Value+input6Value+input7Value)) ? true : false;
-    };
 
     this.templateSettingsFormInputElms[0].addEventListener('keyup', function() {
       let input0Value = this.value;
@@ -207,9 +197,8 @@
         }
       });
 
-      let isDuplicate = false;
       let minNumber = (that.isEdit) ? 1 : 0;
-      isDuplicate = (duplicateNumber>minNumber) ? true : false;
+      let isDuplicate = (duplicateNumber>minNumber) ? true : false;
 
       if(isDuplicate) {
         that.formAlertElms[0].textContent = 'テンプレート名が重複しています';
@@ -222,12 +211,34 @@
       }
     });
 
+    this.templateSettingsFormInputElms[4].addEventListener('change', function() {
+      for(let cnt=5;cnt<=7;++cnt) {
+        that.templateSettingsFormInputElms[cnt].parentNode.classList.remove('d-none');
+      }
+
+      let input4Value = this.value;
+      let arrayInputValueIndex5to7 = Array(3);
+
+      for(let cnt=0;cnt<3;++cnt) {
+        arrayInputValueIndex5to7[cnt] = (that.templateSettingsFormInputElms[(cnt+5)].value) ? that.templateSettingsFormInputElms[(cnt+5)].value : 0;
+      }
+
+      that.templateSettingsFormInputElms[4].innerHTML = that.getOptionData(1, 300, '分');
+      that.templateSettingsFormInputElms[4].value = input4Value;
+
+      for(let cnt=5;cnt<=7;++cnt) {
+        that.templateSettingsFormInputElms[cnt].innerHTML = that.getOptionData(0, input4Value, '分');
+      }
+
+      for(let cnt=0;cnt<3;++cnt) {
+        that.templateSettingsFormInputElms[(cnt+5)].value = arrayInputValueIndex5to7[cnt];
+      }
+      that.checkAmount();
+    });
+
     for(let cnt=5;cnt<=7;++cnt) {
       this.templateSettingsFormInputElms[cnt].addEventListener('change', function() {
-        checkAmount();
-        if(that.templateSettingsFormInputElms[0].value) {
-          that.saveTemplateBtnElm.disabled = !that.isMatched;
-        }
+        that.checkAmount();
       });
     }
   };
