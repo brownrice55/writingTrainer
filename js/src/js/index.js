@@ -108,15 +108,33 @@
     this.resetAddTemplatePage();
   };
 
+  Settings.prototype.getOptionData = function(aMin, aMax, aUnit) {
+    let option = '';
+    for(let cnt=0;cnt<=aMax;++cnt) {
+      option += '<option value="' + (cnt+aMin) + '">' + (cnt+aMin) + aUnit + '</option>';
+    }
+    return option;
+  };
+
   Settings.prototype.editTemplateData = function(aCnt) {
     this.isEdit = true;
     this.backToListElm.classList.remove('d-none');
+
+    for(let cnt=5;cnt<=7;++cnt) {
+      this.templateSettingsFormInputElms[cnt].parentNode.classList.remove('d-none');
+    }
 
     this.editTemplateId = aCnt+1;
     let dataGottenForEdit = this.templateData.get(this.editTemplateId);
     
     this.navTabContentDivElms[0].className = 'tab-pane fade';
     this.navTabContentDivElms[1].className = 'tab-pane fade show active';
+
+    this.templateSettingsFormInputElms[1].innerHTML = this.getOptionData(1, 10, '段落');
+    this.templateSettingsFormInputElms[4].innerHTML = this.getOptionData(1, 300, '分');
+    for(let cnt=5;cnt<=7;++cnt) {
+      this.templateSettingsFormInputElms[cnt].innerHTML = this.getOptionData(0, dataGottenForEdit.total, '分');
+    }
 
     this.templateSettingsFormInputElms[0].value = dataGottenForEdit.templatename;
     this.templateSettingsFormInputElms[1].value = dataGottenForEdit.paragraphs;
@@ -128,7 +146,6 @@
     this.templateSettingsFormInputElms[7].value = dataGottenForEdit.proofreadingtime;
 
     this.saveTemplateBtnElm.textContent = '上書き保存する';
-    // this.saveTemplateBtnElm.disabled = true;　後で対応（差分が出た時のみ活性化）
   };
 
   Settings.prototype.displayTemplateListData = function() {
@@ -152,22 +169,65 @@
     this.backToListElm.classList.add('d-none');
     this.saveTemplateBtnElm.textContent = '保存する';
 
-    const getOptionData = (aMin, aMax, aUnit) => {
-      let option = '';
-      for(let cnt=0;cnt<aMax;++cnt) {
-        option += '<option value="' + (cnt+aMin) + '">' + (cnt+aMin) + aUnit + '</option>';
-      }
-      return option;
-    };
+    this.isFirstTime = true;
+    for(let cnt=5;cnt<=7;++cnt) {
+      this.templateSettingsFormInputElms[cnt].parentNode.classList.add('d-none');
+    }
+    this.saveTemplateBtnElm.disabled = true;
 
     this.templateSettingsFormInputElms[0].value = '';
-    this.templateSettingsFormInputElms[1].innerHTML = getOptionData(1, 10, '段落');
+    this.templateSettingsFormInputElms[1].innerHTML = this.getOptionData(1, 10, '段落');
     this.templateSettingsFormInputElms[2].value = 200;
     this.templateSettingsFormInputElms[3].value = 240;
-    this.templateSettingsFormInputElms[4].innerHTML = getOptionData(1, 300, '分');
-    this.templateSettingsFormInputElms[5].innerHTML = getOptionData(0, 300, '分');
-    this.templateSettingsFormInputElms[6].innerHTML = getOptionData(0, 300, '分');
-    this.templateSettingsFormInputElms[7].innerHTML = getOptionData(0, 300, '分');
+    this.templateSettingsFormInputElms[4].innerHTML = this.getOptionData(0, 300, '分');
+
+    const that = this;
+    this.templateSettingsFormInputElms[4].addEventListener('change', function() {
+      
+      for(let cnt=5;cnt<=7;++cnt) {
+        that.templateSettingsFormInputElms[cnt].parentNode.classList.remove('d-none');
+      }
+
+      let input4Value = this.value;
+      let arrayInputValueIndex5to7 = Array(3);
+
+      if(!that.isFirstTime) {
+        for(let cnt=0;cnt<3;++cnt) {
+          arrayInputValueIndex5to7[cnt] = that.templateSettingsFormInputElms[(cnt+5)].value;
+        }
+      }
+
+      that.templateSettingsFormInputElms[4].innerHTML = that.getOptionData(1, 300, '分');
+      that.templateSettingsFormInputElms[4].value = input4Value;
+
+      for(let cnt=5;cnt<=7;++cnt) {
+        that.templateSettingsFormInputElms[cnt].innerHTML = that.getOptionData(0, input4Value, '分');
+      }
+      
+      if(!that.isFirstTime) {
+        for(let cnt=0;cnt<3;++cnt) {
+          that.templateSettingsFormInputElms[(cnt+5)].value = arrayInputValueIndex5to7[cnt];
+        }
+      }
+
+      that.isFirstTime = false;
+    });
+
+    this.isMatched = false;
+    const checkAmount = () => {
+      let input4Value = parseInt(that.templateSettingsFormInputElms[4].value);
+      let input5Value = parseInt(that.templateSettingsFormInputElms[5].value);
+      let input6Value = parseInt(that.templateSettingsFormInputElms[6].value);
+      let input7Value = parseInt(that.templateSettingsFormInputElms[7].value);
+      this.isMatched = (input4Value===(input5Value+input6Value+input7Value)) ? true : false;
+    };
+
+    for(let cnt=5;cnt<=7;++cnt) {
+      this.templateSettingsFormInputElms[cnt].addEventListener('change', function() {
+        checkAmount();
+        that.saveTemplateBtnElm.disabled = !that.isMatched;
+      });
+    }
 
   };
 
@@ -215,10 +275,14 @@
       this.navTabContentDivElms[1].className = 'tab-pane fade';
       this.isEdit = false;
       this.backToListElm.classList.add('d-none');
+      this.navTabBtnElms[0].className = 'nav-link active';
+      this.navTabBtnElms[1].className = 'nav-link';
     }
   };
 
   Settings.prototype.setEvent = function() {
+    this.saveTemplateBtnElm.disabled = true;
+    this.saveTopicBtnElm.disabled = true;
     if(!this.templateData.size) {
       this.initialState();
     }
