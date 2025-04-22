@@ -89,6 +89,11 @@
     this.saveTopicBtnElm = this.saveBtnElms[1];
 
     this.formAlertElms = document.querySelectorAll('.js-formAlert');
+
+    this.is0OK = false;
+    this.is23OK = true;
+    this.is4OK = false;
+
   };
 
   Settings.prototype.setNavState = function(aState) {
@@ -136,6 +141,17 @@
   };
 
   Settings.prototype.resetTemplatePage = function() {
+    for(let cnt=0;cnt<3;++cnt) {
+      this.formAlertElms[cnt].innerHTML = '';
+    }
+
+    this.templateSettingsFormInputElms[0].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[2].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[3].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[5].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[6].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[7].classList.remove('formAlert');
+
     if(this.isEdit) {
       this.backToListElm.classList.remove('d-none');
       this.navTabContentDivElms[0].className = 'tab-pane fade';
@@ -158,51 +174,47 @@
     this.saveTemplateBtnElm.disabled = true;
   };
 
-  Settings.prototype.judgeDisabledStatus = function() {
+  Settings.prototype.calculateTimeAllocationAndDisplayMessage = function() {
     let input4Value = parseInt(this.templateSettingsFormInputElms[4].value);
     let input5Value = parseInt(this.templateSettingsFormInputElms[5].value);
     let input6Value = parseInt(this.templateSettingsFormInputElms[6].value);
     let input7Value = parseInt(this.templateSettingsFormInputElms[7].value);
-    this.isMatched = (input4Value===(input5Value+input6Value+input7Value)) ? true : false;
+    this.is4OK = (input4Value===(input5Value+input6Value+input7Value)) ? true : false;
 
-    if(!this.isMatched) {
+    if(!this.is4OK) {
       this.formAlertElms[2].textContent = '合計の時間数が合っていません';
       for(let cnt=5;cnt<=7;++cnt) {
         this.templateSettingsFormInputElms[cnt].classList.add('formAlert');
-      }  
+      }
     }
     else {
       this.formAlertElms[2].textContent = '';
       for(let cnt=5;cnt<=7;++cnt) {
         this.templateSettingsFormInputElms[cnt].classList.remove('formAlert');
-      } 
+      }
     }
+    this.judgeDisabledStatus();
+  };
 
-    if(this.templateSettingsFormInputElms[0].value) {
-      this.saveTemplateBtnElm.disabled = !this.isMatched;
+  Settings.prototype.judgeDisabledStatus = function() {
+    if(this.templateSettingsFormInputElms[0].value && this.is0OK && this.is23OK && this.is4OK) {
+      this.saveTemplateBtnElm.disabled = false;
+    }
+    else {
+      this.saveTemplateBtnElm.disabled = true;
     }
   };
 
   Settings.prototype.checkInputBeforeSave = function() {
     const that = this;
-    this.isMatched = false;
 
-    const checkInput0AndDisplayMessage = (aConditional, aTarget, aMessage) => {
+    const checkInputAndDisplayMessage = (aConditional, aTarget, aTarget2, aIndex, aMessage) => {
       if(aConditional) {
-        that.formAlertElms[0].textContent = aMessage;
+        that.formAlertElms[aIndex].textContent = aMessage;
         aTarget.classList.add('formAlert');
-      }
-      else {
-        that.formAlertElms[0].textContent = '';
-        aTarget.classList.remove('formAlert');
-      }
-    };
-
-    const checkInput23AndDisplayMessage = (aConditional, aTarget, aTarget2, aMessage) => {
-      if(aConditional) {
-        that.formAlertElms[1].textContent = aMessage;
-        aTarget.classList.add('formAlert');
-        aTarget2.classList.add('formAlert');
+        if(aTarget2) {
+          aTarget2.classList.add('formAlert');
+        }
         return 0;
       }
       else {
@@ -213,6 +225,7 @@
     this.templateSettingsFormInputElms[0].addEventListener('keyup', function() {
       let input0Value = this.value;
       let duplicateNumber = 0;
+      this.isDuplicate = false;
 
       that.templateData.forEach((value, key) => {
         if(value.templatename==input0Value) {
@@ -221,30 +234,58 @@
       });
 
       let minNumber = (that.isEdit) ? 1 : 0;
-      let isDuplicate = (duplicateNumber>minNumber) ? true : false;
+      that.isDuplicate = (duplicateNumber>minNumber) ? true : false;
 
-      checkInput0AndDisplayMessage(isDuplicate, this, 'テンプレート名が重複しています');
-      if(!isDuplicate) {
-        checkInput0AndDisplayMessage(!this.value, this, '入力してください');
-        that.saveTemplateBtnElm.disabled = (input0Value && that.isMatched) ? false: true;
+      let check1 = checkInputAndDisplayMessage(that.isDuplicate, this, null, 0, 'テンプレート名が重複しています');
+      let check2 = checkInputAndDisplayMessage(!this.value, this, null, 0, '入力してください');
+
+      if((check1+check2)==2) {
+        that.formAlertElms[0].textContent = '';
+        that.templateSettingsFormInputElms[0].classList.remove('formAlert');
+        that.is0OK = true;
       }
+      else {
+        that.is0OK = false;
+      }
+      that.judgeDisabledStatus();
     });
 
     for(let cnt=0;cnt<2;++cnt) {
       this.templateSettingsFormInputElms[(cnt+2)].addEventListener('keyup', function() {
-        checkInput0AndDisplayMessage(!that.templateSettingsFormInputElms[0].value, that.templateSettingsFormInputElms[0], '入力してください');
 
+        let check1 = checkInputAndDisplayMessage(that.isDuplicate, that.templateSettingsFormInputElms[0], null, 0, 'テンプレート名が重複しています');
+        let check2 = checkInputAndDisplayMessage(!that.templateSettingsFormInputElms[0].value, that.templateSettingsFormInputElms[0], null, 0, '入力してください');
+  
+        if((check1+check2)==2) {
+          that.formAlertElms[0].textContent = '';
+          that.templateSettingsFormInputElms[0].classList.remove('formAlert');
+          that.is0OK = true;
+        }
+        else {
+          that.is0OK = false;
+        }  
+
+
+        let isInteger = true;
+        if(!Number.isInteger(Number(that.templateSettingsFormInputElms[2].value)) || !Number.isInteger(Number(that.templateSettingsFormInputElms[2].value))) {
+          isInteger = false;
+        }
         let num1 = parseInt(that.templateSettingsFormInputElms[2].value);
         let num2 = parseInt(that.templateSettingsFormInputElms[3].value);
 
-        let check1 = checkInput23AndDisplayMessage((num1<1 || num2<1 || !num1 || !num2), that.templateSettingsFormInputElms[2], that.templateSettingsFormInputElms[3], '自然数を入力してください');
-        let check2 = checkInput23AndDisplayMessage((num1>num2), that.templateSettingsFormInputElms[2], that.templateSettingsFormInputElms[3], '「最小〜最大」で入力してください');
+        check1 = checkInputAndDisplayMessage((num1<1 || num2<1 || !num1 || !num2 || !isInteger), that.templateSettingsFormInputElms[2], that.templateSettingsFormInputElms[3], 1, '自然数を入力してください');
+        check2 = checkInputAndDisplayMessage((num1>num2), that.templateSettingsFormInputElms[2], that.templateSettingsFormInputElms[3], 1, '「最小〜最大」で入力してください');
 
         if((check1+check2)==2) {
           that.formAlertElms[1].textContent = '';
           that.templateSettingsFormInputElms[2].classList.remove('formAlert');
           that.templateSettingsFormInputElms[3].classList.remove('formAlert');
+          that.is23OK = true;
         }
+        else {
+          that.is23OK = false;
+        }
+        that.judgeDisabledStatus();
       });
     }
 
@@ -270,12 +311,12 @@
       for(let cnt=0;cnt<3;++cnt) {
         that.templateSettingsFormInputElms[(cnt+5)].value = arrayInputValueIndex5to7[cnt];
       }
-      that.judgeDisabledStatus();
+      that.calculateTimeAllocationAndDisplayMessage();
     });
 
     for(let cnt=5;cnt<=7;++cnt) {
       this.templateSettingsFormInputElms[cnt].addEventListener('change', function() {
-        that.judgeDisabledStatus();
+        that.calculateTimeAllocationAndDisplayMessage();
       });
     }
   };
