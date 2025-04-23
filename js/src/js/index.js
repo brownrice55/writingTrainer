@@ -93,7 +93,6 @@
     this.is0OK = false;
     this.is23OK = true;
     this.is4OK = false;
-
   };
 
   Settings.prototype.setNavState = function(aState) {
@@ -141,6 +140,11 @@
   };
 
   Settings.prototype.resetTemplatePage = function() {
+    if(this.isEdit) {
+      this.is0OK = true;
+      this.is23OK = true;
+      this.is4OK = true;
+    }
     for(let cnt=0;cnt<3;++cnt) {
       this.formAlertElms[cnt].innerHTML = '';
     }
@@ -197,13 +201,30 @@
   };
 
   Settings.prototype.judgeDisabledStatus = function() {
+    const checkIsNecessaryToSaveEditTemplate = () => {
+      let array = [this.dataGottenForEdit.templatename, this.dataGottenForEdit.paragraphs, this.dataGottenForEdit.min, this.dataGottenForEdit.max, this.dataGottenForEdit.total, this.dataGottenForEdit.planningtime, this.dataGottenForEdit.writingtime, this.dataGottenForEdit.proofreadingtime];
+
+      for(let cnt=0,len=this.templateSettingsFormInputElms.length;cnt<len;++cnt) {
+        if(this.templateSettingsFormInputElms[cnt].value!=array[cnt]) {
+          return true;
+        }
+      }
+    };
+
     if(this.templateSettingsFormInputElms[0].value && this.is0OK && this.is23OK && this.is4OK) {
-      this.saveTemplateBtnElm.disabled = false;
+      if(this.isEdit) {
+        let isNecessaryToSave = checkIsNecessaryToSaveEditTemplate();
+        this.saveTemplateBtnElm.disabled = (isNecessaryToSave) ? false : true;
+      }
+      else {
+        this.saveTemplateBtnElm.disabled = false;
+      }
     }
     else {
       this.saveTemplateBtnElm.disabled = true;
     }
   };
+
 
   Settings.prototype.checkInputBeforeSave = function() {
     const that = this;
@@ -222,31 +243,52 @@
       }
     };
 
+    const checkIsOk = (aIndex, aIndex2, aIndex3, aCheck1, aCheck2) => {
+      if((aCheck1+aCheck2)==2) {
+        that.formAlertElms[aIndex].textContent = '';
+        that.templateSettingsFormInputElms[aIndex2].classList.remove('formAlert');
+        if(aIndex3) {
+          that.templateSettingsFormInputElms[aIndex3].classList.remove('formAlert');
+        }
+        return true;
+      }
+      else {
+        return false;
+      }
+    };
+
+    this.isDuplicate = false;
+
     this.templateSettingsFormInputElms[0].addEventListener('keyup', function() {
       let input0Value = this.value;
       let duplicateNumber = 0;
-      this.isDuplicate = false;
+      let editDuplicateNumber = 0;
 
       that.templateData.forEach((value, key) => {
         if(value.templatename==input0Value) {
-          ++duplicateNumber; 
+          ++duplicateNumber;
+          if(that.editTemplateId!=key) {
+            ++editDuplicateNumber;
+          }
         }
       });
 
-      let minNumber = (that.isEdit) ? 1 : 0;
-      that.isDuplicate = (duplicateNumber>minNumber) ? true : false;
+      if(that.isEdit) {
+        that.isDuplicate = (editDuplicateNumber) ? true : false;
+      }
+      else {
+        that.isDuplicate = (duplicateNumber) ? true : false;
+      }
 
       let check1 = checkInputAndDisplayMessage(that.isDuplicate, this, null, 0, 'テンプレート名が重複しています');
       let check2 = checkInputAndDisplayMessage(!this.value, this, null, 0, '入力してください');
 
-      if((check1+check2)==2) {
-        that.formAlertElms[0].textContent = '';
-        that.templateSettingsFormInputElms[0].classList.remove('formAlert');
-        that.is0OK = true;
-      }
-      else {
-        that.is0OK = false;
-      }
+      that.is0OK = checkIsOk(0, 0, null, check1, check2);
+
+      that.judgeDisabledStatus();
+    });
+
+    this.templateSettingsFormInputElms[1].addEventListener('change', function() {
       that.judgeDisabledStatus();
     });
 
@@ -256,15 +298,7 @@
         let check1 = checkInputAndDisplayMessage(that.isDuplicate, that.templateSettingsFormInputElms[0], null, 0, 'テンプレート名が重複しています');
         let check2 = checkInputAndDisplayMessage(!that.templateSettingsFormInputElms[0].value, that.templateSettingsFormInputElms[0], null, 0, '入力してください');
   
-        if((check1+check2)==2) {
-          that.formAlertElms[0].textContent = '';
-          that.templateSettingsFormInputElms[0].classList.remove('formAlert');
-          that.is0OK = true;
-        }
-        else {
-          that.is0OK = false;
-        }  
-
+        that.is0OK = checkIsOk(0, 0, null, check1, check2);
 
         let isInteger = true;
         if(!Number.isInteger(Number(that.templateSettingsFormInputElms[2].value)) || !Number.isInteger(Number(that.templateSettingsFormInputElms[2].value))) {
@@ -276,15 +310,7 @@
         check1 = checkInputAndDisplayMessage((num1<1 || num2<1 || !num1 || !num2 || !isInteger), that.templateSettingsFormInputElms[2], that.templateSettingsFormInputElms[3], 1, '自然数を入力してください');
         check2 = checkInputAndDisplayMessage((num1>num2), that.templateSettingsFormInputElms[2], that.templateSettingsFormInputElms[3], 1, '「最小〜最大」で入力してください');
 
-        if((check1+check2)==2) {
-          that.formAlertElms[1].textContent = '';
-          that.templateSettingsFormInputElms[2].classList.remove('formAlert');
-          that.templateSettingsFormInputElms[3].classList.remove('formAlert');
-          that.is23OK = true;
-        }
-        else {
-          that.is23OK = false;
-        }
+        that.is23OK = checkIsOk(1, 2, 3, check1, check2);
         that.judgeDisabledStatus();
       });
     }
@@ -329,20 +355,20 @@
     this.templateSettingsFormInputElms[4].innerHTML = this.getOptionData(1, 299, '分');
 
     this.editTemplateId = aCnt+1;
-    let dataGottenForEdit = this.templateData.get(this.editTemplateId);
+    this.dataGottenForEdit = this.templateData.get(this.editTemplateId);
 
     for(let cnt=5;cnt<=7;++cnt) {
-      this.templateSettingsFormInputElms[cnt].innerHTML = this.getOptionData(0, dataGottenForEdit.total, '分');
+      this.templateSettingsFormInputElms[cnt].innerHTML = this.getOptionData(0, this.dataGottenForEdit.total, '分');
     }
 
-    this.templateSettingsFormInputElms[0].value = dataGottenForEdit.templatename;
-    this.templateSettingsFormInputElms[1].value = dataGottenForEdit.paragraphs;
-    this.templateSettingsFormInputElms[2].value = dataGottenForEdit.min;
-    this.templateSettingsFormInputElms[3].value = dataGottenForEdit.max;
-    this.templateSettingsFormInputElms[4].value = dataGottenForEdit.total;
-    this.templateSettingsFormInputElms[5].value = dataGottenForEdit.planningtime;
-    this.templateSettingsFormInputElms[6].value = dataGottenForEdit.writingtime;
-    this.templateSettingsFormInputElms[7].value = dataGottenForEdit.proofreadingtime;
+    this.templateSettingsFormInputElms[0].value = this.dataGottenForEdit.templatename;
+    this.templateSettingsFormInputElms[1].value = this.dataGottenForEdit.paragraphs;
+    this.templateSettingsFormInputElms[2].value = this.dataGottenForEdit.min;
+    this.templateSettingsFormInputElms[3].value = this.dataGottenForEdit.max;
+    this.templateSettingsFormInputElms[4].value = this.dataGottenForEdit.total;
+    this.templateSettingsFormInputElms[5].value = this.dataGottenForEdit.planningtime;
+    this.templateSettingsFormInputElms[6].value = this.dataGottenForEdit.writingtime;
+    this.templateSettingsFormInputElms[7].value = this.dataGottenForEdit.proofreadingtime;
 
     this.checkInputBeforeSave();
   };
