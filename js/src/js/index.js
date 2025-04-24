@@ -48,9 +48,12 @@
         that.navbarBtn.ariaExpanded = false;
         that.navbarBtn.classList.add('collapsed');
         that.globalMenuElm.classList.remove('show');
+        if(cnt==0) {
+          let practice = new Practice();
+          practice.setFirstPage();
+        }
       });  
     }
-
   };
 
   SwitchPages.prototype.run = function() {
@@ -386,30 +389,29 @@
     this.checkInputBeforeSave();
   };
 
-  Settings.prototype.displayTopicData = function() {
+  Settings.prototype.resetTopicPage = function() {
     let topicInputData = '';
     for(let cnt=0,len=this.topicData.length;cnt<len;++cnt) {
       topicInputData += '<input type="text" class="form-control mx-2 mb-3" value="' + this.topicData[cnt] + '">';
     }
     topicInputData += '<input type="text" class="form-control mx-2 mb-3">';
     this.topicInputAreaElm.innerHTML = topicInputData;
+
+    this.inputTopicElms = this.topicInputAreaElm.querySelectorAll('input');
   };
 
   Settings.prototype.saveData = function(aPage) {
     if(aPage=='topic') {
-      let inputElms = this.topicInputAreaElm.querySelectorAll('input');
-      let array = [];
-      let index = 0;
-      for(let cnt=0,len=inputElms.length;cnt<len;++cnt) {
-        if(inputElms[cnt].value) {
-          array[index] = inputElms[cnt].value;
-          ++index;
-        }
-      }
-      if(!array[0]) {
-        return;
-      }
-      localStorage.setItem('writingTrainerTopicData', JSON.stringify(array));
+      localStorage.setItem('writingTrainerTopicData', JSON.stringify(this.inputArray));
+      topicDataGlobal = this.inputArray;
+      this.topicData = this.inputArray;
+      this.isTopicChanged = false;
+      this.saveTopicBtnElm.disabled = true;
+
+      this.resetTopicPage();
+
+      let practice = new Practice();
+      practice.setFirstPage();
 
       let switchPages = new SwitchPages();
       switchPages.resetPages();
@@ -422,6 +424,7 @@
       let id = (this.isEdit) ? this.editTemplateId : this.templateData.size+1;
       this.templateData.set(id, { templatename:this.templateSettingsFormInputElms[0].value, paragraphs:this.templateSettingsFormInputElms[1].value, min:this.templateSettingsFormInputElms[2].value, max:this.templateSettingsFormInputElms[3].value, total:this.templateSettingsFormInputElms[4].value, planningtime:this.templateSettingsFormInputElms[5].value, writingtime:this.templateSettingsFormInputElms[6].value, proofreadingtime:this.templateSettingsFormInputElms[7].value});
       localStorage.setItem('writingTrainerTemplateData', JSON.stringify([...this.templateData]));
+      templateDataGlobal = this.templateData;
 
       this.templateSettingsFormInputElms[0].value = '';
       
@@ -435,33 +438,80 @@
     }
   };
 
+
+  Settings.prototype.setEventForTopicSettings = function() {
+    const that = this;
+
+    if(this.topicData.length) {
+      this.resetTopicPage();
+    }
+
+    this.saveTopicBtnElm.disabled = true;
+
+    const checkIsBtnDisabled = () => {
+      this.inputArray = [];
+      let index = 0;
+      for(let cnt=0,len=this.inputTopicElms.length;cnt<len;++cnt) {
+        if(this.inputTopicElms[cnt].value) {
+          this.inputArray[index] = this.inputTopicElms[cnt].value;
+          ++index;
+        }
+      }
+      const isDuplicateArray = this.inputArray.filter((value, index, array) => {
+        return array.indexOf(value) != index;
+      });
+
+      this.inputTopicElms.forEach(elm => {
+        elm.classList.remove('formAlert');
+        isDuplicateArray.forEach(val => {
+          if(elm.value==val) {
+            elm.classList.add('formAlert');
+          }
+        })
+      });
+
+      let formAlertElm = this.topicSettingsElm.querySelector('.js-formAlert');
+      formAlertElm.textContent = (isDuplicateArray.length) ? 'トピックが重複しています' : '';
+      
+      return (isDuplicateArray.length || JSON.stringify(this.inputArray)==JSON.stringify(this.topicData)) ? true : false;
+    };
+
+    const judgeSaveBtnDisabled = () => {
+      this.inputTopicElms.forEach(elm => {
+        elm.addEventListener('keyup', function() {
+          that.saveTopicBtnElm.disabled = checkIsBtnDisabled();
+        });
+      });
+    };
+
+    judgeSaveBtnDisabled();
+    this.addTopicBtnElm.addEventListener('click', function() {
+      let inputElm = document.createElement('input');
+      inputElm.type = 'text';
+      inputElm.className = 'form-control mx-2 mb-3';
+      inputElm.value = '';
+      that.topicInputAreaElm.appendChild(inputElm);
+      that.inputTopicElms = that.topicInputAreaElm.querySelectorAll('input');
+      judgeSaveBtnDisabled();
+    });
+
+    this.saveTopicBtnElm.addEventListener('click', function() {
+      that.saveData('topic');
+    });
+  };
+
   Settings.prototype.setEvent = function() {
     this.saveTemplateBtnElm.disabled = true;
-    this.saveTopicBtnElm.disabled = true;
     if(!this.templateData.size) {
       this.initialState();
     }
     else {
       this.displayTemplateListData();
     }
-    if(this.topicData.length) {
-      this.displayTopicData();
-    }
 
     const that = this;
     this.saveTemplateBtnElm.addEventListener('click', function() {
       that.saveData('template');
-    });
-
-    this.addTopicBtnElm.addEventListener('click', function() {
-      let inputElm = document.createElement('input');
-      inputElm.type = 'text';
-      inputElm.className = 'form-control mx-2 mb-3';
-      that.topicInputAreaElm.appendChild(inputElm);
-    });
-
-    this.saveTopicBtnElm.addEventListener('click', function() {
-      that.saveData('topic');
     });
 
     this.navTabBtnElms[1].addEventListener('click', function() {
@@ -472,6 +522,8 @@
       that.navTabContentDivElms[0].className = 'tab-pane fade show active';
       that.navTabContentDivElms[1].className = 'tab-pane fade';
     });
+
+    this.setEventForTopicSettings();
   };
 
   Settings.prototype.run = function() {
@@ -488,9 +540,10 @@
     this.practiceInputElms = this.practiceDivElms[0].querySelectorAll('.js-formInput');
 
     this.templateData = templateDataGlobal;
+    this.topicData = topicDataGlobal;
   };
 
-  Practice.prototype.setfirstPage = function() {
+  Practice.prototype.setFirstPage = function() {
     let optionTemplateData = '';
     this.templateData.forEach((value, key) => {
       optionTemplateData += '<option value="' + value.templatename + '">' + value.templatename + '</option>';
@@ -499,14 +552,15 @@
     this.practiceInputElms[0].innerHTML = optionTemplateData;
 
     let optionTopicData = '';
-    for(let cnt=0,len=topicDataGlobal.length;cnt<len;++cnt) {
-      optionTopicData += '<option value="' + topicDataGlobal[cnt] + '">' + topicDataGlobal[cnt] + '</option>';
+    for(let cnt=0,len=this.topicData.length;cnt<len;++cnt) {
+      optionTopicData += '<option value="' + this.topicData[cnt] + '">' + this.topicData[cnt] + '</option>';
     }
+
     this.practiceInputElms[1].innerHTML = optionTopicData;
   };
 
   Practice.prototype.setEvent = function() {
-    this.setfirstPage();
+    this.setFirstPage();
   };
 
   Practice.prototype.run = function() {

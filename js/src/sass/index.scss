@@ -21,3 +21,11 @@
   border: 1px solid #c00 !important;
   background: #fdd !important;
 }
+
+@media (min-width: 992px) {
+  .navbar-nav {
+    .nav-item {
+      margin-left: 30px;
+    }
+  }
+}
