@@ -45,7 +45,57 @@
           <button class="btn btn-primary p-3 w-75 mx-auto js-practiceStartBtn">スタート</button>
         </div>  
       </div>
-      <div class="js-practice"></div>
+      <div class="js-practice d-none">
+        <div class="row m-2 p-3 bg-secondary-subtle">
+          <div class="col-8">
+              設定：英検１級のエッセイの練習<br>
+              トピック：英文のトピックが入ります
+          </div>
+          <div class="col-4 text-end">
+            <button class="btn btn-secondary" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal">
+              変更
+            </button>
+            <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    ...
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary">変更する</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="my-5 mx-3">
+          <div class="row mt-3">
+            <p>まず、方向性・構成を決めます。<br>
+            校正を決める残り時間「1分50秒」です。</p>
+          </div>
+          <div class="row mb-4">
+            <label for="notes" class="form-label">メモ</label>
+            <textarea class="form-control" id="notes" rows="5"></textarea>
+          </div>
+          <div class="row m-2">
+            <button class="btn btn-primary p-3 w-75 mx-auto js-practiceWritingStartBtn">書き始める</button>
+          </div>
+        </div>
+
+
+      </div>
+      <div class="js-practice">
+
+      </div>
+      <div class="js-practice">
+
+      </div>
     </section>
     <section class="js-list d-none">
       <div class="row">

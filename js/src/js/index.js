@@ -10,6 +10,14 @@
 
   let topicDataGlobal = JSON.parse(localStorage.getItem('writingTrainerTopicData')) || [];
 
+  let practiceDataGlobal = new Map();
+  let practiceData = localStorage.getItem('writingTrainerPracticeData');
+  if(practiceData!=='undefined') {
+    const practiceDataJson = JSON.parse(practiceData);
+    practiceDataGlobal = new Map(practiceDataJson);
+  }
+
+
   let switchPages, settings, practice;
 
   const SwitchPages = function() {
@@ -530,9 +538,13 @@
   };
 
   Practice.prototype.initialize = function() {
+    this.practiceData = practiceDataGlobal;
+
     this.practiceDivElms = document.querySelectorAll('.js-practice');
-    this.practicePage0DatalistElms = this.practiceDivElms[0].querySelectorAll('.js-formInput');
-    this.practicePage0InputElm = this.practicePage0DatalistElms[1].parentNode.querySelector('input');
+    this.practicePage0FormInputElms = this.practiceDivElms[0].querySelectorAll('.js-formInput');
+    this.practicePage0SelectElm = this.practicePage0FormInputElms[0];
+    this.practicePage0DatalistElm = this.practicePage0FormInputElms[1];
+    this.practicePage0InputElm = this.practicePage0FormInputElms[1].parentNode.querySelector('input');
 
     this.templateData = templateDataGlobal;
     this.topicData = topicDataGlobal;
@@ -541,28 +553,55 @@
     this.practiceStartBtnElm.disabled = true;
   };
 
+  Practice.prototype.savePracticeData = function(aStatus) {
+    if(aStatus=='start') {
+      let selectedOption = this.practicePage0SelectElm.options[this.practicePage0SelectElm.selectedIndex];
+      let selectedOptionDataKey = selectedOption.dataset.key;
+      let selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
+      let now = new Date();
+      let id = 1;
+      this.practiceData.set(id, { 
+        templatename: this.practicePage0SelectElm.value,
+        topicname: this.practicePage0InputElm.value,
+        paragraphs: selectedTemplateData.paragraphs,
+        min: selectedTemplateData.min, 
+        max: selectedTemplateData.max,
+        total: selectedTemplateData.total,
+        planningtime: selectedTemplateData.planningtime,
+        writingtime: selectedTemplateData.writingtime,
+        proofreadingtime: selectedTemplateData.proofreadingtime,
+        startTime: now,
+        endTime: 0,
+        notes: '',
+        sentences: []
+      });
+      localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
+    }
+  };
+
   Practice.prototype.setFirstPage = function() {
     let optionTemplateData = '';
     this.templateData.forEach((value, key) => {
-      optionTemplateData += '<option value="' + value.templatename + '">' + value.templatename + '</option>';
+      optionTemplateData += '<option value="' + value.templatename + '" data-key="' + key + '">' + value.templatename + '</option>';
     });
     optionTemplateData += '<option value="addNewTemplate">新しくテンプレートを設定する</option>';
-    this.practicePage0DatalistElms[0].innerHTML = optionTemplateData;
+    this.practicePage0SelectElm.innerHTML = optionTemplateData;
 
     let optionTopicData = '';
     for(let cnt=0,len=this.topicData.length;cnt<len;++cnt) {
       optionTopicData += '<option value="' + this.topicData[cnt] + '">' + this.topicData[cnt] + '</option>';
     }
 
-    this.practicePage0DatalistElms[1].innerHTML = optionTopicData;
+    this.practicePage0DatalistElm.innerHTML = optionTopicData;
   };
+
 
   Practice.prototype.setEvent = function() {
     this.setFirstPage();
 
     const that = this;
 
-    this.practicePage0DatalistElms[0].addEventListener('change', function() {
+    this.practicePage0SelectElm.addEventListener('change', function() {
       if(this.value=='addNewTemplate') {
         switchPages.resetPages();
         switchPages.setPage(2);
@@ -573,6 +612,21 @@
     this.practicePage0InputElm.addEventListener('keyup', function() {
       that.practiceStartBtnElm.disabled = (this.value) ? false : true;
     });
+
+    const saveDataAndGoToNextPage = (aNextIndex) => {
+      that.practiceDivElms.forEach(elm => {
+        elm.classList.add('d-none');
+      });
+      that.practiceDivElms[aNextIndex].classList.remove('d-none');
+    };
+
+    this.practiceStartBtnElm.addEventListener('click', function() {
+      saveDataAndGoToNextPage(1);
+      that.savePracticeData('start');
+    });  
+    
+
+    
   };
 
   Practice.prototype.run = function() {
