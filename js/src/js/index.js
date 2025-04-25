@@ -567,6 +567,10 @@
     this.practiceWritingStartBtnElm.disabled = true;
     this.practiceChangeBtnElm = document.querySelector('.js-practiceChangeBtn');
     this.practiceChangeBtnElm.disabled = true;
+    this.practiceCloseBtnElm = document.querySelector('.js-practiceCloseBtn');
+
+    this.tempTemplateNameForModal = '';
+    this.tempTopicNameForModal = '';
   };
 
   Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences) {
@@ -602,6 +606,12 @@
       let id = 1;// 仮
       let notes = this.practiceNotesTextAreaElm.value;
       this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, notes, null);
+    }
+    else if(aStatus=='modal') {
+      let id = 1;// 仮
+      let tempTemplateName = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
+      let tempTopicName = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
+      this.setAndSaveData(id, this.currentTemplateData, tempTemplateName, tempTopicName, null, null, notes, null);
     }
   };
 
@@ -662,7 +672,7 @@
       that.savePracticeData('1st');
       that.setSecondPage();
       saveDataAndGoToNextPage(1);
-      that.setSelectArea(1); 
+      that.setSelectArea(1);
     });  
     // 1st page end
 
@@ -674,6 +684,26 @@
     this.practiceWritingStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('2nd');
       saveDataAndGoToNextPage(2);
+    });
+
+    this.practicePageSelectElm[1].addEventListener('change', function() {
+      that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentTemplateData.templatename) ? false : true;
+      that.tempTemplateNameForModal = this.value;
+    });
+
+    this.practicePageInputElm[1].addEventListener('keyup', function() {
+      that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentTemplateData.topicname) ? false : true;
+      that.tempTopicNameForModal = this.value;
+    });
+
+    this.practiceChangeBtnElm.addEventListener('click', function() {
+      that.savePracticeData('modal');
+      that.setSecondPage();
+      this.disabled = true;
+    });
+
+    this.practiceCloseBtnElm.addEventListener('click', function() {
+      that.setSelectArea(1);
     });
     // 2nd page end
   };
