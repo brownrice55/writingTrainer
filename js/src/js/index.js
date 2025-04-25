@@ -57,7 +57,7 @@
         that.navbarBtn.classList.add('collapsed');
         that.globalMenuElm.classList.remove('show');
         if(cnt==0) {
-          practice.setFirstPage();
+          practice.setSelectArea(0);
         }
       });  
     }
@@ -540,11 +540,19 @@
   Practice.prototype.initialize = function() {
     this.practiceData = practiceDataGlobal;
 
+    let maxNum = 2;
+    this.practicePageFormInputElms = Array(maxNum);
+    this.practicePageSelectElm = Array(maxNum);
+    this.practicePageDatalistElm = Array(maxNum);
+    this.practicePageInputElm = Array(maxNum);
+
     this.practiceDivElms = document.querySelectorAll('.js-practice');
-    this.practicePage0FormInputElms = this.practiceDivElms[0].querySelectorAll('.js-formInput');
-    this.practicePage0SelectElm = this.practicePage0FormInputElms[0];
-    this.practicePage0DatalistElm = this.practicePage0FormInputElms[1];
-    this.practicePage0InputElm = this.practicePage0FormInputElms[1].parentNode.querySelector('input');
+    for(let cnt=0;cnt<maxNum;++cnt) {
+      this.practicePageFormInputElms[cnt] = this.practiceDivElms[cnt].querySelectorAll('.js-formInput');
+      this.practicePageSelectElm[cnt] = this.practicePageFormInputElms[cnt][0];
+      this.practicePageDatalistElm[cnt] = this.practicePageFormInputElms[cnt][1];
+      this.practicePageInputElm[cnt] = this.practicePageFormInputElms[cnt][1].parentNode.querySelector('input');  
+    }
 
     this.templateData = templateDataGlobal;
     this.topicData = topicDataGlobal;
@@ -557,6 +565,8 @@
     this.practiceNotesTextAreaElm = document.querySelector('.js-practiceNotesTextArea');
     this.practiceWritingStartBtnElm = document.querySelector('.js-practiceWritingStartBtn');
     this.practiceWritingStartBtnElm.disabled = true;
+    this.practiceChangeBtnElm = document.querySelector('.js-practiceChangeBtn');
+    this.practiceChangeBtnElm.disabled = true;
   };
 
   Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences) {
@@ -580,13 +590,13 @@
   
   Practice.prototype.savePracticeData = function(aStatus) {
     if(aStatus=='1st') {
-      let selectedOption = this.practicePage0SelectElm.options[this.practicePage0SelectElm.selectedIndex];
+      let selectedOption = this.practicePageSelectElm[0].options[this.practicePageSelectElm[0].selectedIndex];
       let selectedOptionDataKey = selectedOption.dataset.key;
       this.selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
 
       let now = new Date();
       let id = 1;// 仮
-      this.setAndSaveData(id, this.selectedTemplateData, this.practicePage0SelectElm.value, this.practicePage0InputElm.value, now, null, null, null);
+      this.setAndSaveData(id, this.selectedTemplateData, this.practicePageSelectElm[0].value, this.practicePageInputElm[0].value, now, null, null, null);
     }
     else if(aStatus=='2nd') {
       let id = 1;// 仮
@@ -595,20 +605,26 @@
     }
   };
 
-  Practice.prototype.setFirstPage = function() {
+  Practice.prototype.setSelectArea = function(aIndex) {
     let optionTemplateData = '';
+    let selected = '';
     this.templateData.forEach((value, key) => {
-      optionTemplateData += '<option value="' + value.templatename + '" data-key="' + key + '">' + value.templatename + '</option>';
+      selected = (aIndex && (value.templatename==this.currentTemplateData.templatename)) ? ' selected' : '';
+      optionTemplateData += '<option value="' + value.templatename + '" data-key="' + key + '"' + selected + '>' + value.templatename + '</option>';
     });
-    optionTemplateData += '<option value="addNewTemplate">新しくテンプレートを設定する</option>';
-    this.practicePage0SelectElm.innerHTML = optionTemplateData;
+    if(!aIndex) {
+      optionTemplateData += '<option value="addNewTemplate">新しくテンプレートを設定する</option>';
+    }
+    this.practicePageSelectElm[aIndex].innerHTML = optionTemplateData;
 
     let optionTopicData = '';
     for(let cnt=0,len=this.topicData.length;cnt<len;++cnt) {
       optionTopicData += '<option value="' + this.topicData[cnt] + '">' + this.topicData[cnt] + '</option>';
     }
-
-    this.practicePage0DatalistElm.innerHTML = optionTopicData;
+    this.practicePageDatalistElm[aIndex].innerHTML = optionTopicData;
+    if(aIndex) {
+      this.practicePageInputElm[aIndex].value = this.currentTemplateData.topicname;
+    }
   };
 
   Practice.prototype.setSecondPage = function() {
@@ -618,8 +634,7 @@
   };
 
   Practice.prototype.setEvent = function() {
-    this.setFirstPage();
-    this.setSecondPage();
+    this.setSelectArea(0);
 
     const saveDataAndGoToNextPage = (aNextIndex) => {
       that.practiceDivElms.forEach(elm => {
@@ -631,7 +646,7 @@
     const that = this;
 
     // 1st page start
-    this.practicePage0SelectElm.addEventListener('change', function() {
+    this.practicePageSelectElm[0].addEventListener('change', function() {
       if(this.value=='addNewTemplate') {
         switchPages.resetPages();
         switchPages.setPage(2);
@@ -639,13 +654,15 @@
       }
     });
 
-    this.practicePage0InputElm.addEventListener('keyup', function() {
+    this.practicePageInputElm[0].addEventListener('keyup', function() {
       that.practiceStartBtnElm.disabled = (this.value) ? false : true;
     });
 
     this.practiceStartBtnElm.addEventListener('click', function() {
-      saveDataAndGoToNextPage(1);
       that.savePracticeData('1st');
+      that.setSecondPage();
+      saveDataAndGoToNextPage(1);
+      that.setSelectArea(1); 
     });  
     // 1st page end
 
@@ -655,8 +672,8 @@
     });
 
     this.practiceWritingStartBtnElm.addEventListener('click', function() {
-      saveDataAndGoToNextPage(2);
       that.savePracticeData('2nd');
+      saveDataAndGoToNextPage(2);
     });
     // 2nd page end
   };

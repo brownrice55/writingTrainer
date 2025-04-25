@@ -28,24 +28,22 @@
   </header>
   <main class="js-main container">
     <section class="d-none">
-      <div class="js-practice d-none">
+      <div class="js-practice">
         <p>設定とトピックを決めて、「スタート」を押してください。</p>
         <div class="row p-1">
           <label class="form-label">テンプレート</label>
-          <select class="form-select mx-2 mb-3 js-formInput">
-            <option value="">新しくテンプレートを設定する</option>
-          </select>
+          <select class="form-select mx-2 mb-3 js-formInput"></select>
         </div>
         <div class="row p-1">
           <label for="inputTopic" class="form-label">トピック</label>
           <input class="form-control mx-2 mb-3" list="datalistInputTopic" id="inputTopic" placeholder="トピックを入力または選択してください">
           <datalist id="datalistInputTopic" class="js-formInput"></datalist>
-        </div>  
+        </div>
         <div class="row m-2">
           <button class="btn btn-primary p-3 w-75 mx-auto js-practiceStartBtn">スタート</button>
         </div>  
       </div>
-      <div class="js-practice">
+      <div class="js-practice d-none">
         <div class="row m-2 p-3 bg-secondary-subtle">
           <div class="col-8 js-practiceSelectedSettings"></div>
           <div class="col-4 text-end">
@@ -58,18 +56,25 @@
                   <div class="modal-header">
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
-                  <div class="modal-body">
-                    ...
+                  <div class="modal-body text-start">
+                    <div class="row p-1">
+                      <label class="form-label">テンプレート</label>
+                      <select class="form-select mx-2 mb-3 js-formInput"></select>
+                    </div>
+                    <div class="row p-1">
+                      <label for="inputTopic" class="form-label">トピック</label>
+                      <input class="form-control mx-2 mb-3" list="datalistInputTopic" id="inputTopic" placeholder="トピックを入力または選択してください">
+                      <datalist id="datalistInputTopic" class="js-formInput"></datalist>
+                    </div>
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-primary">変更する</button>
+                    <button type="button" class="btn btn-primary js-practiceChangeBtn">変更する</button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
         <div class="my-5 mx-3">
           <div class="row mt-3">
