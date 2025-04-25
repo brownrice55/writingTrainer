@@ -551,31 +551,47 @@
 
     this.practiceStartBtnElm = document.querySelector('.js-practiceStartBtn');
     this.practiceStartBtnElm.disabled = true;
+
+    this.practiceSelectedSettingsElm = document.querySelector('.js-practiceSelectedSettings');
+    this.practicePlanningTimeElm = document.querySelector('.js-practicePlanningTime');
+    this.practiceNotesTextAreaElm = document.querySelector('.js-practiceNotesTextArea');
+    this.practiceWritingStartBtnElm = document.querySelector('.js-practiceWritingStartBtn');
+    this.practiceWritingStartBtnElm.disabled = true;
   };
 
+  Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences) {
+    this.practiceData.set(aId, { 
+      templatename: (aTemplateData) ? aTemplateData : aValue.templatename,
+      topicname: (aTopicName) ? aTopicName : aValue.topicname,
+      paragraphs: aValue.paragraphs,
+      min: aValue.min, 
+      max: aValue.max,
+      total: aValue.total,
+      planningtime: aValue.planningtime,
+      writingtime: aValue.writingtime,
+      proofreadingtime: aValue.proofreadingtime,
+      startTime: (aStartTime) ? aStartTime : aValue.startTime,
+      endTime: (aEndTime) ? aEndTime : aValue.endTime,
+      notes: (aNotes) ? aNotes : aValue.notes,
+      sentences: (aSentences) ? aSentences : aValue.sentences
+    });
+    localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
+  };
+  
   Practice.prototype.savePracticeData = function(aStatus) {
-    if(aStatus=='start') {
+    if(aStatus=='1st') {
       let selectedOption = this.practicePage0SelectElm.options[this.practicePage0SelectElm.selectedIndex];
       let selectedOptionDataKey = selectedOption.dataset.key;
-      let selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
+      this.selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
+
       let now = new Date();
-      let id = 1;
-      this.practiceData.set(id, { 
-        templatename: this.practicePage0SelectElm.value,
-        topicname: this.practicePage0InputElm.value,
-        paragraphs: selectedTemplateData.paragraphs,
-        min: selectedTemplateData.min, 
-        max: selectedTemplateData.max,
-        total: selectedTemplateData.total,
-        planningtime: selectedTemplateData.planningtime,
-        writingtime: selectedTemplateData.writingtime,
-        proofreadingtime: selectedTemplateData.proofreadingtime,
-        startTime: now,
-        endTime: 0,
-        notes: '',
-        sentences: []
-      });
-      localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
+      let id = 1;// 仮
+      this.setAndSaveData(id, this.selectedTemplateData, this.practicePage0SelectElm.value, this.practicePage0InputElm.value, now, null, null, null);
+    }
+    else if(aStatus=='2nd') {
+      let id = 1;// 仮
+      let notes = this.practiceNotesTextAreaElm.value;
+      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, notes, null);
     }
   };
 
@@ -595,12 +611,26 @@
     this.practicePage0DatalistElm.innerHTML = optionTopicData;
   };
 
+  Practice.prototype.setSecondPage = function() {
+    this.currentTemplateData = this.practiceData.get(1);
+    this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentTemplateData.templatename + '<br>トピック：' + this.currentTemplateData.topicname;
+    this.practicePlanningTimeElm.innerHTML = this.currentTemplateData.planningtime;
+  };
 
   Practice.prototype.setEvent = function() {
     this.setFirstPage();
+    this.setSecondPage();
+
+    const saveDataAndGoToNextPage = (aNextIndex) => {
+      that.practiceDivElms.forEach(elm => {
+        elm.classList.add('d-none');
+      });
+      that.practiceDivElms[aNextIndex].classList.remove('d-none');
+    };
 
     const that = this;
 
+    // 1st page start
     this.practicePage0SelectElm.addEventListener('change', function() {
       if(this.value=='addNewTemplate') {
         switchPages.resetPages();
@@ -613,20 +643,22 @@
       that.practiceStartBtnElm.disabled = (this.value) ? false : true;
     });
 
-    const saveDataAndGoToNextPage = (aNextIndex) => {
-      that.practiceDivElms.forEach(elm => {
-        elm.classList.add('d-none');
-      });
-      that.practiceDivElms[aNextIndex].classList.remove('d-none');
-    };
-
     this.practiceStartBtnElm.addEventListener('click', function() {
       saveDataAndGoToNextPage(1);
-      that.savePracticeData('start');
+      that.savePracticeData('1st');
     });  
-    
+    // 1st page end
 
-    
+    // 2nd page start
+    this.practiceNotesTextAreaElm.addEventListener('keyup', function() {
+      that.practiceWritingStartBtnElm.disabled = (this.value) ? false: true;
+    });
+
+    this.practiceWritingStartBtnElm.addEventListener('click', function() {
+      saveDataAndGoToNextPage(2);
+      that.savePracticeData('2nd');
+    });
+    // 2nd page end
   };
 
   Practice.prototype.run = function() {

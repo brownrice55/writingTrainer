@@ -28,7 +28,7 @@
   </header>
   <main class="js-main container">
     <section class="d-none">
-      <div class="js-practice">
+      <div class="js-practice d-none">
         <p>設定とトピックを決めて、「スタート」を押してください。</p>
         <div class="row p-1">
           <label class="form-label">テンプレート</label>
@@ -45,12 +45,9 @@
           <button class="btn btn-primary p-3 w-75 mx-auto js-practiceStartBtn">スタート</button>
         </div>  
       </div>
-      <div class="js-practice d-none">
+      <div class="js-practice">
         <div class="row m-2 p-3 bg-secondary-subtle">
-          <div class="col-8">
-              設定：英検１級のエッセイの練習<br>
-              トピック：英文のトピックが入ります
-          </div>
+          <div class="col-8 js-practiceSelectedSettings"></div>
           <div class="col-4 text-end">
             <button class="btn btn-secondary" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal">
               変更
@@ -77,18 +74,16 @@
         <div class="my-5 mx-3">
           <div class="row mt-3">
             <p>まず、方向性・構成を決めます。<br>
-            校正を決める残り時間「1分50秒」です。</p>
+            校正を決める残り時間「<span class="js-practicePlanningTime"></span>分」です。</p>
           </div>
           <div class="row mb-4">
             <label for="notes" class="form-label">メモ</label>
-            <textarea class="form-control" id="notes" rows="5"></textarea>
+            <textarea class="form-control js-practiceNotesTextArea" id="notes" rows="5"></textarea>
           </div>
           <div class="row m-2">
             <button class="btn btn-primary p-3 w-75 mx-auto js-practiceWritingStartBtn">書き始める</button>
           </div>
         </div>
-
-
       </div>
       <div class="js-practice">
 
