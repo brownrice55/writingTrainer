@@ -53,7 +53,7 @@ Could you please let me know if there are any errors in my English or code?</p>
 
 | メモ設定 | ライティング開始 | 校正 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/f16edf7c-f9d1-4c9e-b5e8-457461bd7fe5" width="200"> | <img src="https://github.com/user-attachments/assets/7fe87e79-57fa-40b3-9119-1520e9587f43" width="200"> | <img src="https://github.com/user-attachments/assets/472b44b2-6da3-4685-b15f-e82b138701f2" width="200"> |
+| <img src="https://github.com/user-attachments/assets/a4c8edb6-f13d-44b4-853a-656447dd292a" width="200"> | <img src="https://github.com/user-attachments/assets/7fe87e79-57fa-40b3-9119-1520e9587f43" width="200"> | <img src="https://github.com/user-attachments/assets/472b44b2-6da3-4685-b15f-e82b138701f2" width="200"> |
 
 | 修正 | 終了 |  |
 | ---- | ---- | ---- |
