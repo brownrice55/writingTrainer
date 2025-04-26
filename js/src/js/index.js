@@ -571,9 +571,12 @@
 
     this.tempTemplateNameForModal = '';
     this.tempTopicNameForModal = '';
+
+    this.startTime = 0;
+    this.timerID = 0;
   };
 
-  Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences) {
+  Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3) {
     this.practiceData.set(aId, { 
       templatename: (aTemplateData) ? aTemplateData : aValue.templatename,
       topicname: (aTopicName) ? aTopicName : aValue.topicname,
@@ -587,7 +590,13 @@
       startTime: (aStartTime) ? aStartTime : aValue.startTime,
       endTime: (aEndTime) ? aEndTime : aValue.endTime,
       notes: (aNotes) ? aNotes : aValue.notes,
-      sentences: (aSentences) ? aSentences : aValue.sentences
+      sentences: (aSentences) ? aSentences : aValue.sentences,
+      timetaken1: (aTimeTaken1) ? aTimeTaken1 : aValue.timetaken1,
+      isplus1: (aIsPlus1) ? aIsPlus1 : aValue.isplus1,
+      timetaken2: (aTimeTaken2) ? aTimeTaken2 : aValue.timetaken2,
+      isplus2: (aIsPlus2) ? aIsPlus2 : aValue.isplus2,
+      timetaken3: (aTimeTaken3) ? aTimeTaken3 : aValue.timetaken3,
+      isplus3: (aIsPlus3) ? aIsPlus3 : aValue.isplus3
     });
     localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
   };
@@ -598,20 +607,20 @@
       let selectedOptionDataKey = selectedOption.dataset.key;
       this.selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
 
-      let now = new Date();
+      this.startTime = new Date();
       let id = 1;// 仮
-      this.setAndSaveData(id, this.selectedTemplateData, this.practicePageSelectElm[0].value, this.practicePageInputElm[0].value, now, null, null, null);
+      this.setAndSaveData(id, this.selectedTemplateData, this.practicePageSelectElm[0].value, this.practicePageInputElm[0].value, this.startTime, null, null, null, null, null, null, null, null, null);
     }
     else if(aStatus=='2nd') {
       let id = 1;// 仮
       let notes = this.practiceNotesTextAreaElm.value;
-      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, notes, null);
+      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, notes, null, this.timeTaken, this.isPlus, null, null, null, null);
     }
     else if(aStatus=='modal') {
       let id = 1;// 仮
       let tempTemplateName = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
       let tempTopicName = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
-      this.setAndSaveData(id, this.currentTemplateData, tempTemplateName, tempTopicName, null, null, notes, null);
+      this.setAndSaveData(id, this.currentTemplateData, tempTemplateName, tempTopicName, null, null, notes, null, null, null, null, null, null, null);
     }
   };
 
@@ -637,10 +646,36 @@
     }
   };
 
+  Practice.prototype.getRemainingTime = function() {
+    const getRemainingTime = () => {
+      this.isPlus = true;
+      let msPlanningTime = parseInt(this.currentTemplateData.planningtime) * 60000;
+      
+      if(msPlanningTime>=(Date.now()-this.startTime)) {
+        this.timeTaken = msPlanningTime - (Date.now() - this.startTime);
+        this.isPlus = true;
+      }
+      else {
+        this.timeTaken = (Date.now() - this.startTime) - msPlanningTime;
+        this.isPlus = false;
+      }
+      let diff = new Date(this.timeTaken);
+      let m = String(diff.getMinutes());
+      let s = String(diff.getSeconds());
+      let displayDiff = (m!='0') ? (m + '分' + s + '秒') : (s + '秒');
+      displayDiff = (this.isPlus) ? '残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
+      this.practicePlanningTimeElm.innerHTML = displayDiff;
+      this.timerID = setTimeout(getRemainingTime, 30);
+    };
+
+    this.startTime = Date.now();
+    getRemainingTime();
+  };
+
   Practice.prototype.setSecondPage = function() {
     this.currentTemplateData = this.practiceData.get(1);
     this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentTemplateData.templatename + '<br>トピック：' + this.currentTemplateData.topicname;
-    this.practicePlanningTimeElm.innerHTML = this.currentTemplateData.planningtime;
+    this.getRemainingTime();
   };
 
   Practice.prototype.setEvent = function() {
@@ -670,8 +705,8 @@
 
     this.practiceStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('1st');
-      that.setSecondPage();
       saveDataAndGoToNextPage(1);
+      that.setSecondPage();
       that.setSelectArea(1);
     });  
     // 1st page end
@@ -684,6 +719,7 @@
     this.practiceWritingStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('2nd');
       saveDataAndGoToNextPage(2);
+      clearTimeout(that.timerID);
     });
 
     this.practicePageSelectElm[1].addEventListener('change', function() {
