@@ -574,6 +574,8 @@
 
     this.startTime = 0;
     this.timerID = 0;
+
+    this.practiceWritingTotalCount = document.querySelector('.js-practiceWritingTotalCount');
   };
 
   Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3) {
@@ -621,14 +623,23 @@
     }
     else if(aStatus=='2nd') {
       let id = 1;// 仮
-      let notes = this.practiceNotesTextAreaElm.value;
-      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, notes, null, this.timeTaken, this.isPlus, null, null, null, null);
+      this.currentTemplateData.notes = this.practiceNotesTextAreaElm.value;
+      this.currentTemplateData.timetaken1 = this.timeTaken;
+      this.currentTemplateData.isplus1 = this.isPlus;
+      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, this.currentTemplateData.notes, null, this.currentTemplateData.timetaken1, this.currentTemplateData.isplus1, null, null, null, null);
     }
     else if(aStatus=='modal') {
       let id = 1;// 仮
-      let tempTemplateName = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
-      let tempTopicName = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
-      this.setAndSaveData(id, this.currentTemplateData, tempTemplateName, tempTopicName, null, null, notes, null, null, null, null, null, null, null);
+      this.currentTemplateData.templatename = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
+      this.currentTemplateData.topicname = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
+      this.setAndSaveData(id, this.currentTemplateData, this.currentTemplateData.templatename, this.currentTemplateData.topicname, null, null, null, null, null, null, null, null, null, null);
+    }
+    else if(aStatus=='3rd') {
+      let id = 1;// 仮
+      this.currentTemplateData.timetaken2 = this.timeTaken;
+      this.currentTemplateData.isplus2 = this.isPlus;
+      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, null, this.currentTemplateData.sentences, this.currentTemplateData.timetaken1, this.currentTemplateData.isplus1, this.currentTemplateData.timetaken2, this.currentTemplateData.isplus2, null, null);
+      goToNextPage(2);
     }
   };
 
@@ -654,36 +665,52 @@
     }
   };
 
-  Practice.prototype.getRemainingTime = function() {
+  Practice.prototype.getRemainingTime = function(aStatus) {
     const getRemainingTime = () => {
       this.isPlus = true;
-      let msPlanningTime = parseInt(this.currentTemplateData.planningtime) * 60000;
+      let settingTime = 0;
+      if(aStatus=='planning') {
+        settingTime = parseInt(this.currentTemplateData.planningtime) * 60000;
+      }
+      else if(aStatus=='writing') {
+        settingTime = parseInt(this.currentTemplateData.writingtime) * 60000;
+      }
       
-      if(msPlanningTime>=(Date.now()-this.startTime)) {
-        this.timeTaken = msPlanningTime - (Date.now() - this.startTime);
+      if(settingTime>=(Date.now()-this.startTime)) {
+        this.timeTaken = settingTime - (Date.now() - this.startTime);
         this.isPlus = true;
       }
       else {
-        this.timeTaken = (Date.now() - this.startTime) - msPlanningTime;
+        this.timeTaken = (Date.now() - this.startTime) - settingTime;
         this.isPlus = false;
       }
       let diff = new Date(this.timeTaken);
       let m = String(diff.getMinutes());
       let s = String(diff.getSeconds());
       let displayDiff = (m!='0') ? (m + '分' + s + '秒') : (s + '秒');
-      displayDiff = (this.isPlus) ? '方向性・構成を決める残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
-      this.practicePlanningTimeElm.innerHTML = displayDiff;
+
+      if(aStatus=='planning') {
+        displayDiff = (this.isPlus) ? '方向性・構成を決める残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
+        this.practicePlanningTimeElm.innerHTML = displayDiff;
+      }
+      else if(aStatus=='writing') {
+        displayDiff = (this.isPlus) ? '内容を書く残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
+        this.practiceWritingTimeElm.innerHTML = displayDiff;
+      }
       this.timerID = setTimeout(getRemainingTime, 30);
     };
 
     this.startTime = Date.now();
-    getRemainingTime();
+    getRemainingTime(aStatus);
   };
 
+  const that = this;
   Practice.prototype.setSecondPage = function() {
     this.currentTemplateData = this.practiceData.get(1);
     this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentTemplateData.templatename + '<br>トピック：' + this.currentTemplateData.topicname;
-    this.getRemainingTime();
+    this.getRemainingTime('planning');
+
+    this.practiceWritingTotalCount.textContent = '合計0語/' + this.currentTemplateData.min + '-' + this.currentTemplateData.max + '語';
   };
 
   Practice.prototype.setEvent = function() {
@@ -714,11 +741,12 @@
     });  
     // 1st page end
 
-    // 2nd page start
+    // 2nd and 3rd page start
     this.practiceNotesTextAreaElm.addEventListener('keyup', function() {
       that.practiceWritingStartBtnElm.disabled = (this.value) ? false: true;
     });
 
+    this.practiceWritingTimeElm = document.querySelector('.js-practiceWritingTime');
     this.practiceWritingStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('2nd');
       clearTimeout(that.timerID);
@@ -726,7 +754,9 @@
       that.practice2DivElms[1].classList.remove('d-none');
 
       let practiceWritingNotesElm = document.querySelector('.js-practiceWritingNotes');
-      practiceWritingNotesElm.innerHTML = that.currentTemplateData.notes;//*** */
+      practiceWritingNotesElm.innerHTML = that.currentTemplateData.notes.replace(/\n/g, '<br>');
+
+      that.getRemainingTime('writing');
 
       let paragraphsDivElm = document.querySelector('.js-paragraphs');
       let paragraphsNum = that.currentTemplateData.paragraphs;
@@ -745,8 +775,7 @@
       let practiceWritingTextAreaElms = document.querySelectorAll('.js-practiceWritingTextArea');
       let practiceWritingWordNumElms = document.querySelectorAll('.js-practiceWritingWordNum');
 
-      let practiceWritingTotalCount = document.querySelector('.js-practiceWritingTotalCount');
-      const getWordNum = (aCurrentTemplateData) => {
+      const getWordNum = () => {
         let totalNum = 0;
         let wordNum = 0;
         for(let cnt=0;cnt<paragraphsNum;++cnt) {
@@ -759,7 +788,7 @@
             totalNum += wordNum;
           }
           practiceProofreadingStartBtnElm.disabled = (totalNum) ? false : true;
-          practiceWritingTotalCount.textContent = '合計' + totalNum + '語/' + aCurrentTemplateData.min + '-' + aCurrentTemplateData.max + '語';
+          that.practiceWritingTotalCount.textContent = '合計' + totalNum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
         }
       };
 
@@ -769,19 +798,26 @@
         });
       }
 
+      let textAreaValueArray = Array(paragraphsNum);
       practiceProofreadingStartBtnElm.addEventListener('click', function() {
-        
-      })
+        for(let cnt=0;cnt<paragraphsNum;++cnt) {
+          textAreaValueArray[cnt] = practiceWritingTextAreaElms[cnt].value;
+        }
+        that.currentTemplateData.sentences = textAreaValueArray;
+        that.savePracticeData('3rd');
+      });
     });
 
     this.practicePageSelectElm[1].addEventListener('change', function() {
       that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentTemplateData.templatename) ? false : true;
       that.tempTemplateNameForModal = this.value;
+      that.tempTopicNameForModal = that.practicePageInputElm[1].value;
     });
 
     this.practicePageInputElm[1].addEventListener('keyup', function() {
       that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentTemplateData.topicname) ? false : true;
       that.tempTopicNameForModal = this.value;
+      that.tempTemplateNameForModal = that.practicePageSelectElm[1].value;
     });
 
     this.practiceChangeBtnElm.addEventListener('click', function() {
@@ -793,7 +829,7 @@
     this.practiceCloseBtnElm.addEventListener('click', function() {
       that.setSelectArea(1);
     });
-    // 2nd page end
+    // 2nd and 3rd page end
   };
 
   Practice.prototype.run = function() {
