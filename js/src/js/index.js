@@ -575,10 +575,12 @@
     this.startTime = 0;
     this.timerID = 0;
 
-    this.practiceWritingTotalCount = document.querySelector('.js-practiceWritingTotalCount');
+    this.practiceWritingTotalCountElm = document.querySelector('.js-practiceWritingTotalCount');
+    this.practiceProofreadingTotalCountElm = document.querySelector('.js-practiceProofreadingTotalCount');
+    this.paragraphsNum = 0;
   };
 
-  Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3) {
+  Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTotalnum, aWordnum, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3) {
     this.practiceData.set(aId, { 
       templatename: (aTemplateData) ? aTemplateData : aValue.templatename,
       topicname: (aTopicName) ? aTopicName : aValue.topicname,
@@ -593,6 +595,8 @@
       endTime: (aEndTime) ? aEndTime : aValue.endTime,
       notes: (aNotes) ? aNotes : aValue.notes,
       sentences: (aSentences) ? aSentences : aValue.sentences,
+      totalnum: (aTotalnum) ? aTotalnum : aValue.totalnum,
+      wordnum: (aWordnum) ? aWordnum : aValue.wordnum,
       timetaken1: (aTimeTaken1) ? aTimeTaken1 : aValue.timetaken1,
       isplus1: (aIsPlus1) ? aIsPlus1 : aValue.isplus1,
       timetaken2: (aTimeTaken2) ? aTimeTaken2 : aValue.timetaken2,
@@ -618,7 +622,7 @@
 
       this.startTime = new Date();
       let id = 1;// 仮
-      this.setAndSaveData(id, this.selectedTemplateData, this.practicePageSelectElm[0].value, this.practicePageInputElm[0].value, this.startTime, null, null, null, null, null, null, null, null, null);
+      this.setAndSaveData(id, this.selectedTemplateData, this.practicePageSelectElm[0].value, this.practicePageInputElm[0].value, this.startTime, null, null, null, null, null, null, null, null, null, null, null);
       goToNextPage(1);
     }
     else if(aStatus=='2nd') {
@@ -626,19 +630,19 @@
       this.currentTemplateData.notes = this.practiceNotesTextAreaElm.value;
       this.currentTemplateData.timetaken1 = this.timeTaken;
       this.currentTemplateData.isplus1 = this.isPlus;
-      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, this.currentTemplateData.notes, null, this.currentTemplateData.timetaken1, this.currentTemplateData.isplus1, null, null, null, null);
+      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, this.currentTemplateData.notes, null, null, null, this.currentTemplateData.timetaken1, this.currentTemplateData.isplus1, null, null, null, null);
     }
     else if(aStatus=='modal') {
       let id = 1;// 仮
       this.currentTemplateData.templatename = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
       this.currentTemplateData.topicname = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
-      this.setAndSaveData(id, this.currentTemplateData, this.currentTemplateData.templatename, this.currentTemplateData.topicname, null, null, null, null, null, null, null, null, null, null);
+      this.setAndSaveData(id, this.currentTemplateData, this.currentTemplateData.templatename, this.currentTemplateData.topicname, null, null, null, null, null, null, null, null, null, null, null, null);
     }
     else if(aStatus=='3rd') {
       let id = 1;// 仮
       this.currentTemplateData.timetaken2 = this.timeTaken;
       this.currentTemplateData.isplus2 = this.isPlus;
-      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, null, this.currentTemplateData.sentences, this.currentTemplateData.timetaken1, this.currentTemplateData.isplus1, this.currentTemplateData.timetaken2, this.currentTemplateData.isplus2, null, null);
+      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, null, this.currentTemplateData.sentences, null, null, this.currentTemplateData.timetaken1, this.currentTemplateData.isplus1, this.currentTemplateData.timetaken2, this.currentTemplateData.isplus2, null, null);
       goToNextPage(2);
     }
   };
@@ -710,7 +714,7 @@
     this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentTemplateData.templatename + '<br>トピック：' + this.currentTemplateData.topicname;
     this.getRemainingTime('planning');
 
-    this.practiceWritingTotalCount.textContent = '合計0語/' + this.currentTemplateData.min + '-' + this.currentTemplateData.max + '語';
+    this.practiceWritingTotalCountElm.textContent = '合計0語/' + this.currentTemplateData.min + '-' + this.currentTemplateData.max + '語';
   };
 
   Practice.prototype.setEvent = function() {
@@ -746,6 +750,18 @@
       that.practiceWritingStartBtnElm.disabled = (this.value) ? false: true;
     });
 
+    const getParagraphsTextArea = (aDisabled) => {
+      let paragraphsTextArea = '';
+      let disabled = (aDisabled) ? ' disabled' : '';
+      for(cnt=0;cnt<that.paragraphsNum;++cnt) {
+        paragraphsTextArea += `<div class="row mb-4">
+              <textarea class="form-control js-practiceWritingTextArea" rows="5"` + disabled + `></textarea>
+              <div class="text-end"><span class="js-practiceWritingWordNum"></span>語</div>
+            </div>`;
+      }
+      return paragraphsTextArea;
+    };
+
     this.practiceWritingTimeElm = document.querySelector('.js-practiceWritingTime');
     this.practiceWritingStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('2nd');
@@ -758,53 +774,63 @@
 
       that.getRemainingTime('writing');
 
-      let paragraphsDivElm = document.querySelector('.js-paragraphs');
-      let paragraphsNum = that.currentTemplateData.paragraphs;
-      let paragraphsTextArea = '';
-      for(cnt=0;cnt<paragraphsNum;++cnt) {
-        paragraphsTextArea += `<div class="row mb-4">
-              <textarea class="form-control js-practiceWritingTextArea" rows="5"></textarea>
-              <div class="text-end"><span class="js-practiceWritingWordNum"></span>語</div>
-            </div>`;
-      }
-      paragraphsDivElm.innerHTML = paragraphsTextArea;
+      that.paragraphsNum = that.currentTemplateData.paragraphs;
+      let paragraphsDivElm = that.practiceDivElms[1].querySelector('.js-paragraphs');
+      paragraphsDivElm.innerHTML = getParagraphsTextArea(false);
 
       let practiceProofreadingStartBtnElm = document.querySelector('.js-practiceProofreadingStartBtn');
       practiceProofreadingStartBtnElm.disabled = true;
 
-      let practiceWritingTextAreaElms = document.querySelectorAll('.js-practiceWritingTextArea');
-      let practiceWritingWordNumElms = document.querySelectorAll('.js-practiceWritingWordNum');
+      let practiceWritingTextAreaElms = Array(2);
+      let practiceWritingWordNumElms = Array(2);
+      practiceWritingTextAreaElms[0] = that.practiceDivElms[1].querySelectorAll('.js-practiceWritingTextArea');
+      practiceWritingWordNumElms[0] = that.practiceDivElms[1].querySelectorAll('.js-practiceWritingWordNum');
 
       const getWordNum = () => {
         let totalNum = 0;
-        let wordNum = 0;
-        for(let cnt=0;cnt<paragraphsNum;++cnt) {
-          wordNum = 0;
-          let valueArray = practiceWritingTextAreaElms[cnt].value.split(' ');
+        let wordNum = Array(that.paragraphsNum);
+        for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
+          wordNum[cnt] = 0;
+          let valueArray = practiceWritingTextAreaElms[0][cnt].value.split(' ');
           let valueArrayTrue = valueArray.map(val=>(val!='')).filter(Boolean);
-          wordNum = valueArrayTrue.length;
-          practiceWritingWordNumElms[cnt].textContent = wordNum;
+          wordNum[cnt] = valueArrayTrue.length;
+          practiceWritingWordNumElms[0][cnt].textContent = wordNum[cnt];
           if(valueArrayTrue) {
-            totalNum += wordNum;
+            totalNum += wordNum[cnt];
           }
           practiceProofreadingStartBtnElm.disabled = (totalNum) ? false : true;
-          that.practiceWritingTotalCount.textContent = '合計' + totalNum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
+          that.practiceWritingTotalCountElm.textContent = '合計' + totalNum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
         }
+        that.currentTemplateData.totalnum = totalNum;
+        that.currentTemplateData.wordnum = wordNum;
       };
 
-      for(let cnt=0;cnt<paragraphsNum;++cnt) {
-        practiceWritingTextAreaElms[cnt].addEventListener('keyup', function() {
+      for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
+        practiceWritingTextAreaElms[0][cnt].addEventListener('keyup', function() {
           getWordNum(that.currentTemplateData);
         });
       }
 
-      let textAreaValueArray = Array(paragraphsNum);
+      let textAreaValueArray = Array(that.paragraphsNum);
       practiceProofreadingStartBtnElm.addEventListener('click', function() {
-        for(let cnt=0;cnt<paragraphsNum;++cnt) {
-          textAreaValueArray[cnt] = practiceWritingTextAreaElms[cnt].value;
+        for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
+          textAreaValueArray[cnt] = practiceWritingTextAreaElms[0][cnt].value;
         }
         that.currentTemplateData.sentences = textAreaValueArray;
         that.savePracticeData('3rd');
+
+        let paragraphsDivElm = that.practiceDivElms[2].querySelector('.js-paragraphs');
+        paragraphsDivElm.innerHTML = getParagraphsTextArea(true);
+
+        practiceWritingTextAreaElms[1] = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingTextArea');
+        practiceWritingWordNumElms[1] = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingWordNum');
+
+        for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
+          practiceWritingTextAreaElms[1][cnt].value = textAreaValueArray[cnt];
+          practiceWritingWordNumElms[1][cnt].textContent = that.currentTemplateData.wordnum[cnt];
+        }
+
+        that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentTemplateData.totalnum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
       });
     });
 
