@@ -578,6 +578,10 @@
     this.practiceWritingTotalCountElm = document.querySelector('.js-practiceWritingTotalCount');
     this.practiceProofreadingTotalCountElm = document.querySelector('.js-practiceProofreadingTotalCount');
     this.paragraphsNum = 0;
+
+    this.totalNum = 0;
+    this.wordNum = [];
+    this.isUnderEditArray = [false, false, false, false];
   };
 
   Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTotalnum, aWordnum, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3) {
@@ -754,10 +758,18 @@
       let paragraphsTextArea = '';
       let disabled = (aDisabled) ? ' disabled' : '';
       for(cnt=0;cnt<that.paragraphsNum;++cnt) {
-        paragraphsTextArea += `<div class="row mb-4">
-              <textarea class="form-control js-practiceWritingTextArea" rows="5"` + disabled + `></textarea>
-              <div class="text-end"><span class="js-practiceWritingWordNum"></span>語</div>
-            </div>`;
+        paragraphsTextArea += `<div class="row mb-4">`;
+        if(aDisabled) {
+          paragraphsTextArea += `<div class="position-relative">`;
+        }
+        paragraphsTextArea += `<textarea class="form-control js-practiceWritingTextArea" rows="7"` + disabled + `></textarea>`;
+        if(aDisabled) {
+          paragraphsTextArea += `<div class="position-absolute bottom-0 end-0 mb-2 me-4">
+          <button class="btn btn-secondary d-none js-practiceWritingCancelBtn">キャンセル</button>
+          <button class="btn btn-primary js-practiceWritingReviseBtn">修正する</button>
+          </div></div>`;
+        }
+        paragraphsTextArea += `<div class="text-end"><span class="js-practiceWritingWordNum"></span>語</div></div>`;
       }
       return paragraphsTextArea;
     };
@@ -786,28 +798,30 @@
       practiceWritingTextAreaElms[0] = that.practiceDivElms[1].querySelectorAll('.js-practiceWritingTextArea');
       practiceWritingWordNumElms[0] = that.practiceDivElms[1].querySelectorAll('.js-practiceWritingWordNum');
 
-      const getWordNum = () => {
-        let totalNum = 0;
-        let wordNum = Array(that.paragraphsNum);
+      const getWordNum = (aIndex, aElm, aBtnElm) => {
+        that.totalNum = 0;
+        that.wordNum = Array(that.paragraphsNum);
         for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
-          wordNum[cnt] = 0;
-          let valueArray = practiceWritingTextAreaElms[0][cnt].value.split(' ');
+          that.wordNum[cnt] = 0;
+          let valueArray = practiceWritingTextAreaElms[aIndex][cnt].value.split(' ');
           let valueArrayTrue = valueArray.map(val=>(val!='')).filter(Boolean);
-          wordNum[cnt] = valueArrayTrue.length;
-          practiceWritingWordNumElms[0][cnt].textContent = wordNum[cnt];
+          that.wordNum[cnt] = valueArrayTrue.length;
+          practiceWritingWordNumElms[aIndex][cnt].textContent = that.wordNum[cnt];
           if(valueArrayTrue) {
-            totalNum += wordNum[cnt];
+            that.totalNum += that.wordNum[cnt];
           }
-          practiceProofreadingStartBtnElm.disabled = (totalNum) ? false : true;
-          that.practiceWritingTotalCountElm.textContent = '合計' + totalNum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
         }
-        that.currentTemplateData.totalnum = totalNum;
-        that.currentTemplateData.wordnum = wordNum;
+        aElm.textContent = '合計' + that.totalNum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
+        aBtnElm.disabled = (that.totalNum) ? false : true;
+        if(!aIndex) {
+          that.currentTemplateData.totalnum = that.totalNum;
+          that.currentTemplateData.wordnum = that.wordNum;  
+        }
       };
 
       for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
         practiceWritingTextAreaElms[0][cnt].addEventListener('keyup', function() {
-          getWordNum(that.currentTemplateData);
+          getWordNum(0, that.practiceWritingTotalCountElm, practiceProofreadingStartBtnElm);
         });
       }
 
@@ -824,13 +838,53 @@
 
         practiceWritingTextAreaElms[1] = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingTextArea');
         practiceWritingWordNumElms[1] = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingWordNum');
+        let practiceWritingReviseBtnElms = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingReviseBtn');
+        let practiceWritingCancelBtnElms = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingCancelBtn');
+
+        that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentTemplateData.totalnum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
 
         for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
           practiceWritingTextAreaElms[1][cnt].value = textAreaValueArray[cnt];
           practiceWritingWordNumElms[1][cnt].textContent = that.currentTemplateData.wordnum[cnt];
+          practiceWritingReviseBtnElms[cnt].addEventListener('click', function() {
+            that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
+            if(that.isUnderEditArray[cnt]) {
+              practiceWritingReviseBtnElms.forEach(elm => {
+                elm.disabled = true;
+              });
+              practiceWritingTextAreaElms[1][cnt].disabled = false;
+              practiceWritingTextAreaElms[1][cnt].focus();
+              this.textContent = '修正完了';
+              practiceWritingCancelBtnElms[cnt].classList.remove('d-none');
+            }
+            else {
+              practiceWritingTextAreaElms[1][cnt].disabled = true;
+              this.textContent = '修正する';
+              practiceWritingCancelBtnElms[cnt].classList.add('d-none');
+              practiceWritingReviseBtnElms.forEach(elm => {
+                elm.disabled = false;
+              });
+              that.currentTemplateData.sentences[cnt] = practiceWritingTextAreaElms[1][cnt].value;
+              that.currentTemplateData.wordnum[cnt] = that.wordNum[cnt];
+              that.currentTemplateData.totalnum = that.totalNum;
+            }
+          });
+          practiceWritingCancelBtnElms[cnt].addEventListener('click', function() {
+            that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
+            practiceWritingReviseBtnElms.forEach(elm => {
+              elm.disabled = false;
+            });
+            practiceWritingReviseBtnElms[cnt].textContent = '修正する';
+            practiceWritingTextAreaElms[1][cnt].disabled = true;
+            this.classList.add('d-none');
+            practiceWritingTextAreaElms[1][cnt].value = that.currentTemplateData.sentences[cnt];
+            practiceWritingWordNumElms[1][cnt].textContent = that.currentTemplateData.wordnum[cnt];
+            that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentTemplateData.totalnum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
+          });
+          practiceWritingTextAreaElms[1][cnt].addEventListener('keyup', function() {
+            getWordNum(1, that.practiceProofreadingTotalCountElm, practiceWritingReviseBtnElms[cnt]);
+          });
         }
-
-        that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentTemplateData.totalnum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
       });
     });
 
