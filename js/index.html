@@ -105,11 +105,25 @@
         <div class="js-paragraphs"></div>
         <div class="mb-4 text-end js-practiceProofreadingTotalCount"></div>
         <div class="row m-2">
-          <button class="btn btn-primary p-3 w-75 mx-auto js-practiceProofreadingStartBtn">終了する</button>
+          <button class="btn btn-primary p-3 w-75 mx-auto js-practiceCompleteBtn">終了する</button>
         </div>
       </div>
       <div class="js-practice d-none">
-        <!-- 終了 -->
+        <p class="p-3">
+          お疲れ様でした。今回の練習を保存しました。<br>今回の練習を保存しない場合は、一番下の「保存しない」ボタンを押してください。
+        </p>
+        <div class="row m-2 p-3 bg-secondary-subtle js-practiceResult"></div>
+        <div class="row my-5 mx-3 js-practiceResult"></div>
+        <div class="row m-2 js-practiceResult"></div>
+        <div class="text-end mb-4 mx-4 js-practiceResult"></div>
+        <div class="row text-center">
+          <div class="col">
+            <button class="btn btn-primary p-3 w-100 mx-auto">練習見直し一覧へ</button>
+          </div>
+          <div class="col">
+            <button class="btn btn-primary p-3 w-100 mx-auto">今回の練習を保存しない</button>
+          </div>
+        </div>
       </div>
     </section>
     <section class="js-list d-none">
@@ -149,7 +163,7 @@
           <li>時間配分：メモ2分30秒、ライティング20分20秒、校正2分10秒</li>
         </ul>
         <div class="text-end">
-          <button class="btn btn-primary p-1 px-2 mx-2">確認する</button>
+          <button class="btn btn-primary py-1 px-2 mx-2">確認する</button>
         </div>
       </div>
     </section>
@@ -216,7 +230,7 @@
         <input type="text" class="form-control mx-2 mb-3">
       </div>
       <div class="text-end">
-        <button class="btn btn-primary p-1 px-2 mx-2 mb-4 js-addTopicBtn">トピックを追加する</button>
+        <button class="btn btn-primary py-1 px-2 mx-2 mb-4 js-addTopicBtn">トピックを追加する</button>
       </div>
       <div class="row m-2">
         <button class="btn btn-primary p-3 w-75 mx-auto js-saveSettingsBtn">保存する</button>

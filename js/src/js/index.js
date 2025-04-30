@@ -582,6 +582,9 @@
     this.totalNum = 0;
     this.wordNum = [];
     this.isUnderEditArray = [false, false, false, false];
+
+    this.practiceProofreadingTimeElm = document.querySelector('.js-practiceProofreadingTime');
+    this.practiceCompleteBtnElm = document.querySelector('.js-practiceCompleteBtn');
   };
 
   Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTotalnum, aWordnum, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3) {
@@ -589,7 +592,7 @@
       templatename: (aTemplateData) ? aTemplateData : aValue.templatename,
       topicname: (aTopicName) ? aTopicName : aValue.topicname,
       paragraphs: aValue.paragraphs,
-      min: aValue.min, 
+      min: aValue.min,
       max: aValue.max,
       total: aValue.total,
       planningtime: aValue.planningtime,
@@ -630,6 +633,7 @@
       goToNextPage(1);
     }
     else if(aStatus=='2nd') {
+      clearTimeout(this.timerID);
       let id = 1;// 仮
       this.currentTemplateData.notes = this.practiceNotesTextAreaElm.value;
       this.currentTemplateData.timetaken1 = this.timeTaken;
@@ -643,11 +647,21 @@
       this.setAndSaveData(id, this.currentTemplateData, this.currentTemplateData.templatename, this.currentTemplateData.topicname, null, null, null, null, null, null, null, null, null, null, null, null);
     }
     else if(aStatus=='3rd') {
+      clearTimeout(this.timerID);
       let id = 1;// 仮
       this.currentTemplateData.timetaken2 = this.timeTaken;
       this.currentTemplateData.isplus2 = this.isPlus;
-      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, null, this.currentTemplateData.sentences, null, null, this.currentTemplateData.timetaken1, this.currentTemplateData.isplus1, this.currentTemplateData.timetaken2, this.currentTemplateData.isplus2, null, null);
+      this.setAndSaveData(id, this.currentTemplateData, null, null, null, null, null, this.currentTemplateData.sentences, null, null, null, null, this.currentTemplateData.timetaken2, this.currentTemplateData.isplus2, null, null);
       goToNextPage(2);
+    }
+    else if(aStatus=='4th') {
+      clearTimeout(this.timerID);
+      let id = 1;// 仮
+      this.currentTemplateData.timetaken3 = this.timeTaken;
+      this.currentTemplateData.isplus3 = this.isPlus;
+      let endTime = new Date();
+      this.setAndSaveData(id, this.currentTemplateData, null, null, null, endTime, null, this.currentTemplateData.sentences, null, null, null, null, null, null, this.currentTemplateData.timetaken3, this.currentTemplateData.isplus3);
+      goToNextPage(3);
     }
   };
 
@@ -683,16 +697,21 @@
       else if(aStatus=='writing') {
         settingTime = parseInt(this.currentTemplateData.writingtime) * 60000;
       }
-      
+      else {
+        settingTime = parseInt(this.currentTemplateData.proofreadingtime) * 60000;
+      }
+
       if(settingTime>=(Date.now()-this.startTime)) {
-        this.timeTaken = settingTime - (Date.now() - this.startTime);
+        this.timeTaken = Date.now() - this.startTime;
+        this.remainingTime = settingTime - this.timeTaken;
         this.isPlus = true;
       }
       else {
-        this.timeTaken = (Date.now() - this.startTime) - settingTime;
+        this.remainingTime = (Date.now() - this.startTime) - settingTime;
+        this.timeTaken = settingTime + this.remainingTime;
         this.isPlus = false;
       }
-      let diff = new Date(this.timeTaken);
+      let diff = new Date(this.remainingTime);
       let m = String(diff.getMinutes());
       let s = String(diff.getSeconds());
       let displayDiff = (m!='0') ? (m + '分' + s + '秒') : (s + '秒');
@@ -704,6 +723,10 @@
       else if(aStatus=='writing') {
         displayDiff = (this.isPlus) ? '内容を書く残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
         this.practiceWritingTimeElm.innerHTML = displayDiff;
+      }
+      else {
+        displayDiff = (this.isPlus) ? '校正をする残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
+        this.practiceProofreadingTimeElm.innerHTML = displayDiff;
       }
       this.timerID = setTimeout(getRemainingTime, 30);
     };
@@ -777,7 +800,6 @@
     this.practiceWritingTimeElm = document.querySelector('.js-practiceWritingTime');
     this.practiceWritingStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('2nd');
-      clearTimeout(that.timerID);
       that.practice2DivElms[0].classList.add('d-none');
       that.practice2DivElms[1].classList.remove('d-none');
 
@@ -827,11 +849,13 @@
 
       let textAreaValueArray = Array(that.paragraphsNum);
       practiceProofreadingStartBtnElm.addEventListener('click', function() {
+
         for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
           textAreaValueArray[cnt] = practiceWritingTextAreaElms[0][cnt].value;
         }
         that.currentTemplateData.sentences = textAreaValueArray;
         that.savePracticeData('3rd');
+        that.getRemainingTime('proofreading');
 
         let paragraphsDivElm = that.practiceDivElms[2].querySelector('.js-paragraphs');
         paragraphsDivElm.innerHTML = getParagraphsTextArea(true);
@@ -910,6 +934,70 @@
       that.setSelectArea(1);
     });
     // 2nd and 3rd page end
+
+    // 4th page start
+    this.practiceCompleteBtnElm.addEventListener('click', function() {
+      that.savePracticeData('4th');
+    });
+
+    let practiceResultElms = document.querySelectorAll('.js-practiceResult');
+    let data = this.practiceData.get(1);
+
+    const getTimeTakenForDisplay = (aTimeTaken) => {
+      let second = Math.round(parseInt(aTimeTaken)/1000);
+      if(second>60) {
+        let result = (second%60) ? (Math.floor(second/60) + '分' + second%60 + '秒') : (Math.floor(second/60) + '分');
+        return result;
+      }
+      return (second + '秒');
+    };
+
+    const getTime = (aTime) => {
+      let date = new Date(aTime);
+      let dateY = date.getFullYear();
+      let dateM = date.getMonth();
+      let dateD = date.getDay();
+      let dateH = date.getHours();
+      let dateMi = date.getMinutes();
+      if(dateMi<10) {
+        dateMi = '0' + dateMi;
+      }
+      return [dateY, dateM, dateD, dateH, dateMi];
+    };
+
+    const displayTime = (aStartTime, aEndTime) => {
+      let startTime = getTime(aStartTime);
+      let endTime = getTime(aEndTime);
+
+      let result = '実施日時：' + startTime[0] + '/' + startTime[1] + '/' + startTime[2] + ' ' + startTime[3] + ':' + startTime[4] + '〜';
+      result += (startTime[0]==endTime[0] && startTime[1]==endTime[1] && startTime[2]==endTime[2]) ? '' : (endTime[0] + '/' + endTime[1] + '/' + endTime[2]);
+      result += endTime[3] + ':' + endTime[4] + '<br>';
+      return result;
+    };
+
+    let result = '設定：' + data.templatename + '<br>';
+    result += 'トピック：' + data.topicname + '<br>';
+    result += displayTime(data.startTime, data.endTime);
+    result += '所要時間：メモ' + getTimeTakenForDisplay(data.timetaken1) + '、';
+    result += 'ライティング' + getTimeTakenForDisplay(data.timetaken2) + '、';
+    result += '校正' + getTimeTakenForDisplay(data.timetaken3);
+
+    practiceResultElms[0].innerHTML = result;
+    practiceResultElms[1].innerHTML = data.notes.replace(/\n/g, '<br>');
+
+    result = '';
+    for(let cnt=0,len=data.sentences.length;cnt<len;++cnt) {
+      if(data.sentences[cnt]) {
+        result += '<p>' + data.sentences[cnt] + '</p>';
+      }
+    }
+    practiceResultElms[2].innerHTML = result;
+
+    result = '合計' + data.totalnum + '語 / ' + data.min + '-' + data.max + '語';
+    practiceResultElms[3].innerHTML = result;
+
+    // 4th page end
+
   };
 
   Practice.prototype.run = function() {

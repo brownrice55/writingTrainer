@@ -57,7 +57,7 @@ Could you please let me know if there are any errors in my English or code?</p>
 
 | 修正 | 終了 |  |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/291bffe7-81ae-4fe1-bdd8-4caa79d56c83" width="200"> | <img src="https://github.com/user-attachments/assets/24b45771-6219-4a2e-ae13-dc52c3ae4dbf" width="200"> |  |
+| <img src="https://github.com/user-attachments/assets/291bffe7-81ae-4fe1-bdd8-4caa79d56c83" width="200"> | <img src="https://github.com/user-attachments/assets/c164da78-68a8-4c79-8543-651f1f29c248" width="200"> |  |
 
 | 練習の見直し　一覧 | 練習の見直し　検索 | 練習の見直し　詳細 |
 | ---- | ---- | ---- |
