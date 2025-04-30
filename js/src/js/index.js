@@ -585,6 +585,10 @@
 
     this.practiceProofreadingTimeElm = document.querySelector('.js-practiceProofreadingTime');
     this.practiceCompleteBtnElm = document.querySelector('.js-practiceCompleteBtn');
+
+    this.practiceResultBtnElms = document.querySelectorAll('.js-practiceResultBtn');
+    this.goToReviewPageBtnElm = this.practiceResultBtnElms[0];
+    this.deleteThisPracticeResultBtnElm = this.practiceResultBtnElms[1];
   };
 
   Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTotalnum, aWordnum, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3) {
@@ -938,8 +942,23 @@
     // 4th page start
     this.practiceCompleteBtnElm.addEventListener('click', function() {
       that.savePracticeData('4th');
+      that.displayResult();
     });
 
+    this.goToReviewPageBtnElm.addEventListener('click', function() {
+      switchPages.resetPages();
+      switchPages.setPage(1);
+    });
+
+    this.deleteThisPracticeResultBtnElm.addEventListener('click', function() {
+      that.practiceData.delete(1);
+      localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...that.practiceData]));
+    });
+
+    // 4th page end
+  };
+
+  Practice.prototype.displayResult = function() {
     let practiceResultElms = document.querySelectorAll('.js-practiceResult');
     let data = this.practiceData.get(1);
 
@@ -996,14 +1015,11 @@
     result = '合計' + data.totalnum + '語 / ' + data.min + '-' + data.max + '語';
     practiceResultElms[3].innerHTML = result;
 
-    // 4th page end
-
   };
 
   Practice.prototype.run = function() {
     this.setEvent();
   };
-
 
   window.addEventListener('DOMContentLoaded', function() {
     switchPages = new SwitchPages();
