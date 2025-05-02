@@ -82,7 +82,7 @@
     this.isEdit = false;
     this.editTemplateId = 0;
 
-    this.backToListBtnElm = document.querySelector('.js-backToList button');
+    this.backToListBtnElm = document.querySelector('.js-templateSettings .js-backToList button');
     this.backToListElm = this.backToListBtnElm.parentNode;
 
     this.navTabElm = document.querySelector('.js-navTab');
@@ -992,7 +992,7 @@
     // 4th page start
     this.practiceCompleteBtnElm.addEventListener('click', function() {
       that.savePracticeData('4th');
-      that.displayResult();
+      that.displayResult(that.id, '.js-practiceResult', that.practiceData);
     });
 
     this.goToReviewPageBtnElm.addEventListener('click', function() {
@@ -1011,17 +1011,17 @@
     // 4th page end
   };
 
-  Practice.prototype.displayResult = function() {
-    let practiceResultElms = document.querySelectorAll('.js-practiceResult');
-    let data = this.practiceData.get(this.id);
+  Practice.prototype.displayResult = function(aId, aClass, aData) {
+    let resultElms = document.querySelectorAll(aClass);
+    let data = aData.get(aId);
 
     let result = '設定：' + data.templatename + '<br>';
     result += 'トピック：' + data.topicname + '<br>';
     result += '実施日時：' + data.displayDate + '<br>';
     result += '所要時間：' + data.displayTimeTaken + '<br>';
 
-    practiceResultElms[0].innerHTML = result;
-    practiceResultElms[1].innerHTML = data.notes.replace(/\n/g, '<br>');
+    resultElms[0].innerHTML = result;
+    resultElms[1].innerHTML = data.notes.replace(/\n/g, '<br>');
 
     result = '';
     for(let cnt=0,len=data.sentences.length;cnt<len;++cnt) {
@@ -1029,10 +1029,10 @@
         result += '<p>' + data.sentences[cnt] + '</p>';
       }
     }
-    practiceResultElms[2].innerHTML = result;
+    resultElms[2].innerHTML = result;
 
     result = '合計' + data.totalnum + '語 / ' + data.min + '-' + data.max + '語';
-    practiceResultElms[3].innerHTML = result;
+    resultElms[3].innerHTML = result;
 
   };
 
@@ -1046,10 +1046,15 @@
   };
 
   Review.prototype.initialize = function() {
-    this.practiceData = practiceDataGlobal;
+    this.reviewContElms = document.querySelectorAll('.js-reviewCont');
+    this.reviewContElm = document.querySelector('.js-reviewList');
+
+    this.btnIndex = 0;
+    this.backToListBtnElms = document.querySelectorAll('.js-list .js-backToList button');
   };
 
   Review.prototype.displayList = function() {
+    this.practiceData = practiceDataGlobal;
     let list = '';
     this.practiceData.forEach((val, key) => {
       list += `<div class="border rounded p-2 py-3 m-3">
@@ -1060,16 +1065,43 @@
           <li>時間配分：` + val.displayTimeTaken + `</li>
         </ul>
         <div class="text-end">
-          <button class="btn btn-primary py-1 px-2 mx-2">確認する</button>
+          <button class="btn btn-primary py-1 px-2 mx-2 js-checkDetailBtn" data-index=` + key + `>確認する</button>
         </div>
       </div>`;
     });
-    let reviewListElm = document.querySelector('.js-reviewList');
-    reviewListElm.innerHTML = list;
+    this.reviewContElm.innerHTML = list;
+
+    this.checkDetailBtnElms = document.querySelectorAll('.js-checkDetailBtn');
+    const that = this;
+    this.checkDetailBtnElms.forEach(elm => {
+      elm.addEventListener('click', function() {
+        that.btnIndex = parseInt(this.dataset.index);
+        practice.displayResult(that.btnIndex, '.js-reviewResult', that.practiceData);
+        that.reviewContElms[0].classList.add('d-none');
+        that.reviewContElms[1].classList.remove('d-none');
+      });
+    });
   };
 
   Review.prototype.setEvent = function() {
     this.displayList();
+
+    const that = this;
+    this.backToListBtnElms.forEach(elm => {
+      elm.addEventListener('click', function() {
+        that.reviewContElms[0].classList.remove('d-none');
+        that.reviewContElms[1].classList.add('d-none');
+      });
+    });
+
+    this.goToPracticeBtnElm = document.querySelector('.js-goToPracticeBtn');
+    this.goToPracticeBtnElm.addEventListener('click', function() {
+      that.reviewContElms[0].classList.remove('d-none');
+      that.reviewContElms[1].classList.add('d-none');
+      switchPages.resetPages();
+      switchPages.setPage(0);
+    });
+
   };
 
   Review.prototype.run = function() {

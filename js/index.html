@@ -127,35 +127,54 @@
       </div>
     </section>
     <section class="js-list d-none">
-      <div class="row">
-        <h2 class="lead col">過去の練習内容の一覧</h2>
-        <div class="text-end col">
-          <button class="btn btn-secondary p-1 px-2 mx-2" data-bs-toggle="collapse" data-bs-target="#filter" aria-expand="false" aria-controls="filter">絞り込み</button>
+      <div class="js-reviewCont">
+        <div class="row">
+          <h2 class="lead col">過去の練習内容の一覧</h2>
+          <div class="text-end col">
+            <button class="btn btn-secondary p-1 px-2 mx-2" data-bs-toggle="collapse" data-bs-target="#filter" aria-expand="false" aria-controls="filter">絞り込み</button>
+          </div>
+        </div>  
+        <div class="bg-secondary text-white p-2 mx-2 collapse" id="filter">
+          <div class="row p-1">
+            <div class="col-4">
+              設定名
+            </div>
+            <div class="col-8">
+              <select class="form-select">
+                <option value="">英検１級のエッセイの練習</option>
+              </select>
+            </div>
+          </div>
+          <div class="row p-1">
+            <div class="col-4">
+              トピック
+            </div>
+            <div class="col-8">
+              <select class="form-select">
+                <option value="">英文のトピックが入ります</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="js-reviewList"></div>
+      </div>
+      <div class="js-reviewCont d-none">
+        <div class="text-start mb-4 js-backToList">
+          <button class="btn btn-secondary backToList">一覧へ戻る</button>
+        </div>
+        <div class="row m-2 p-3 bg-secondary-subtle js-reviewResult"></div>
+        <div class="row my-5 mx-3 js-reviewResult"></div>
+        <div class="row m-2 js-reviewResult"></div>
+        <div class="text-end mb-4 mx-4 js-reviewResult"></div>
+        <div class="row text-center">
+          <div class="col js-backToList">
+            <button class="btn btn-primary p-3 w-100 mx-auto">一覧へ戻る</button>
+          </div>
+          <div class="col">
+            <button class="btn btn-primary p-3 w-100 mx-auto js-goToPracticeBtn">練習をする</button>
+          </div>
         </div>
       </div>
-      <div class="bg-secondary text-white p-2 mx-2 collapse" id="filter">
-        <div class="row p-1">
-          <div class="col-4">
-            設定名
-          </div>
-          <div class="col-8">
-            <select class="form-select">
-              <option value="">英検１級のエッセイの練習</option>
-            </select>
-          </div>
-        </div>
-        <div class="row p-1">
-          <div class="col-4">
-            トピック
-          </div>
-          <div class="col-8">
-            <select class="form-select">
-              <option value="">英文のトピックが入ります</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="js-reviewList"></div>
     </section>
     <section class="js-templateSettings d-none">
       <h1 class="lead">テンプレート設定</h1>
