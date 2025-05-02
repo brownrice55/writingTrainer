@@ -58,6 +58,7 @@
         that.globalMenuElm.classList.remove('show');
         if(cnt==0) {
           practice.setSelectArea(0);
+          practice.resetPractice();
         }
       });  
     }
@@ -592,6 +593,13 @@
     this.deleteThisPracticeResultBtnElm = this.practiceResultBtnElms[1];
   };
 
+  Practice.prototype.resetPractice = function() {
+    this.goToNextPage(0);
+    this.practiceStartBtnElm.disabled = true;
+    this.practiceWritingStartBtnElm.disabled = true;
+    this.practiceChangeBtnElm.disabled = true;
+  };
+
   Practice.prototype.setAndSaveData = function(aId, aValue) {
     this.practiceData.set(aId, aValue);
     localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
@@ -623,6 +631,8 @@
       this.currentPracticeData.startTime = this.startTime;
       this.currentPracticeData.templatename = this.practicePageSelectElm[0].value;
       this.currentPracticeData.topicname = this.practicePageInputElm[0].value;
+      this.practicePageSelectElm[0].value = '';
+      this.practicePageInputElm[0].value = '';
 
       this.currentPracticeData.paragraphs = this.selectedTemplateData.paragraphs;
       this.currentPracticeData.min = this.selectedTemplateData.min;
@@ -639,6 +649,7 @@
       clearTimeout(this.timerID);
       this.currentPracticeData.startTime = this.startTime;
       this.currentPracticeData.notes = this.practiceNotesTextAreaElm.value;
+      this.practiceNotesTextAreaElm.value = '';
       this.currentPracticeData.timetaken1 = this.timeTaken;
       this.currentPracticeData.isplus1 = this.isPlus;
       this.setAndSaveData(this.id, this.currentPracticeData);
