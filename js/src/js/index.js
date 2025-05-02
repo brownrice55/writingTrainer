@@ -18,7 +18,7 @@
   }
 
 
-  let switchPages, settings, practice;
+  let switchPages, settings, practice, review;
 
   const SwitchPages = function() {
     this.initialize.apply(this, arguments);
@@ -559,6 +559,7 @@
     this.practiceStartBtnElm = document.querySelector('.js-practiceStartBtn');
     this.practiceStartBtnElm.disabled = true;
     this.id = 1
+    this.currentPracticeData = new Map();
 
     this.practiceSelectedSettingsElm = document.querySelector('.js-practiceSelectedSettings');
     this.practicePlanningTimeElm = document.querySelector('.js-practicePlanningTime');
@@ -640,29 +641,31 @@
       let selectedOption = this.practicePageSelectElm[0].options[this.practicePageSelectElm[0].selectedIndex];
       let selectedOptionDataKey = selectedOption.dataset.key;
       this.selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
-
       this.startTime = new Date();
       this.id = this.practiceData.size + 1;
-      this.setAndSaveData(this.id, this.selectedTemplateData, this.practicePageSelectElm[0].value, this.practicePageInputElm[0].value, this.startTime, null, null, null, null, null, null, null, null, null, null, null);
+      this.currentPracticeData.templatename = this.practicePageSelectElm[0].value;
+      this.currentPracticeData.topicname = this.practicePageInputElm[0].value;
+      this.setAndSaveData(this.id, this.selectedTemplateData, this.currentPracticeData.templatename, this.currentPracticeData.topicname, this.startTime, null, null, null, null, null, null, null, null, null, null, null);
       that.goToNextPage(1);
     }
     else if(aStatus=='2nd') {
       clearTimeout(this.timerID);
-      this.currentTemplateData.notes = this.practiceNotesTextAreaElm.value;
-      this.currentTemplateData.timetaken1 = this.timeTaken;
-      this.currentTemplateData.isplus1 = this.isPlus;
-      this.setAndSaveData(this.id, this.currentTemplateData, null, null, null, null, this.currentTemplateData.notes, null, null, null, this.currentTemplateData.timetaken1, this.currentTemplateData.isplus1, null, null, null, null);
+      this.currentPracticeData.startTime = this.startTime;
+      this.currentPracticeData.notes = this.practiceNotesTextAreaElm.value;
+      this.currentPracticeData.timetaken1 = this.timeTaken;
+      this.currentPracticeData.isplus1 = this.isPlus;
+      this.setAndSaveData(this.id, this.currentPracticeData, null, null, null, null, this.currentPracticeData.notes, null, null, null, this.currentPracticeData.timetaken1, this.currentPracticeData.isplus1, null, null, null, null);
     }
     else if(aStatus=='modal') {
-      this.currentTemplateData.templatename = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
-      this.currentTemplateData.topicname = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
-      this.setAndSaveData(this.id, this.currentTemplateData, this.currentTemplateData.templatename, this.currentTemplateData.topicname, null, null, null, null, null, null, null, null, null, null, null, null);
+      this.currentPracticeData.templatename = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
+      this.currentPracticeData.topicname = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
+      this.setAndSaveData(this.id, this.currentPracticeData, this.currentPracticeData.templatename, this.currentPracticeData.topicname, null, null, null, null, null, null, null, null, null, null, null, null);
     }
     else if(aStatus=='3rd') {
       clearTimeout(this.timerID);
-      this.currentTemplateData.timetaken2 = this.timeTaken;
-      this.currentTemplateData.isplus2 = this.isPlus;
-      this.setAndSaveData(this.id, this.currentTemplateData, null, null, null, null, null, this.currentTemplateData.sentences, null, null, null, null, this.currentTemplateData.timetaken2, this.currentTemplateData.isplus2, null, null);
+      this.currentPracticeData.timetaken2 = this.timeTaken;
+      this.currentPracticeData.isplus2 = this.isPlus;
+      this.setAndSaveData(this.id, this.currentPracticeData, null, null, null, null, null, this.currentPracticeData.sentences, null, null, null, null, this.currentPracticeData.timetaken2, this.currentPracticeData.isplus2, null, null);
       this.goToNextPage(2);
     }
     else if(aStatus=='4th') {
@@ -680,7 +683,7 @@
           }
           return [dateY, dateM, dateD, dateH, dateMi];
         };
-    
+
         let startTime = getTime(aStartTime);
         let endTime = getTime(aEndTime);
     
@@ -700,20 +703,21 @@
           return (second + '秒');
         };
   
-        let result = 'メモ' + getTimeTakenForDisplay(this.currentTemplateData.timetaken1) + '、';
-        result += 'ライティング' + getTimeTakenForDisplay(this.currentTemplateData.timetaken2) + '、';
-        result += '校正' + getTimeTakenForDisplay(this.currentTemplateData.timetaken3);
+        let result = 'メモ' + getTimeTakenForDisplay(this.currentPracticeData.timetaken1) + '、';
+        result += 'ライティング' + getTimeTakenForDisplay(this.currentPracticeData.timetaken2) + '、';
+        result += '校正' + getTimeTakenForDisplay(this.currentPracticeData.timetaken3);
 
         return result;
       };
 
       clearTimeout(this.timerID);
-      this.currentTemplateData.timetaken3 = this.timeTaken;
-      this.currentTemplateData.isplus3 = this.isPlus;
+      this.currentPracticeData.timetaken3 = this.timeTaken;
+      this.currentPracticeData.isplus3 = this.isPlus;
       let endTime = new Date();
-      this.currentTemplateData.displayDate = getDisplayDateAndTime(this.currentTemplateData.startTime, endTime);
-      this.currentTemplateData.displayTimeTaken = getDisplayTimeTaken(this.currentTemplateData.timetaken1, this.currentTemplateData.timetaken2, this.currentTemplateData.timetaken3);
-      this.setAndSaveData(this.id, this.currentTemplateData, null, null, null, endTime, null, this.currentTemplateData.sentences, null, null, null, null, null, null, this.currentTemplateData.timetaken3, this.currentTemplateData.isplus3, this.currentTemplateData.displayDate, this.displayTimeTaken);
+      let startTime = new Date(this.currentPracticeData.startTime);
+      this.currentPracticeData.displayDate = getDisplayDateAndTime(startTime, endTime);
+      this.currentPracticeData.displayTimeTaken = getDisplayTimeTaken(this.currentPracticeData.timetaken1, this.currentPracticeData.timetaken2, this.currentPracticeData.timetaken3);
+      this.setAndSaveData(this.id, this.currentPracticeData, null, null, null, endTime, null, this.currentPracticeData.sentences, null, null, null, null, null, null, this.currentPracticeData.timetaken3, this.currentPracticeData.isplus3, this.currentPracticeData.displayDate, this.displayTimeTaken);
       this.goToNextPage(3);
     }
   };
@@ -722,7 +726,7 @@
     let optionTemplateData = '';
     let selected = '';
     this.templateData.forEach((value, key) => {
-      selected = (aIndex && (value.templatename==this.currentTemplateData.templatename)) ? ' selected' : '';
+      selected = (aIndex && (value.templatename==this.currentPracticeData.templatename)) ? ' selected' : '';
       optionTemplateData += '<option value="' + value.templatename + '" data-key="' + key + '"' + selected + '>' + value.templatename + '</option>';
     });
     if(!aIndex) {
@@ -736,7 +740,7 @@
     }
     this.practicePageDatalistElm[aIndex].innerHTML = optionTopicData;
     if(aIndex) {
-      this.practicePageInputElm[aIndex].value = this.currentTemplateData.topicname;
+      this.practicePageInputElm[aIndex].value = this.currentPracticeData.topicname;
     }
   };
 
@@ -745,13 +749,13 @@
       this.isPlus = true;
       let settingTime = 0;
       if(aStatus=='planning') {
-        settingTime = parseInt(this.currentTemplateData.planningtime) * 60000;
+        settingTime = parseInt(this.currentPracticeData.planningtime) * 60000;
       }
       else if(aStatus=='writing') {
-        settingTime = parseInt(this.currentTemplateData.writingtime) * 60000;
+        settingTime = parseInt(this.currentPracticeData.writingtime) * 60000;
       }
       else {
-        settingTime = parseInt(this.currentTemplateData.proofreadingtime) * 60000;
+        settingTime = parseInt(this.currentPracticeData.proofreadingtime) * 60000;
       }
 
       if(settingTime>=(Date.now()-this.startTime)) {
@@ -789,11 +793,11 @@
   };
 
   Practice.prototype.setSecondPage = function() {
-    this.currentTemplateData = this.practiceData.get(1);
-    this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentTemplateData.templatename + '<br>トピック：' + this.currentTemplateData.topicname;
+    this.currentPracticeData = this.practiceData.get(this.id);
+    this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentPracticeData.templatename + '<br>トピック：' + this.currentPracticeData.topicname;
     this.getRemainingTime('planning');
 
-    this.practiceWritingTotalCountElm.textContent = '合計0語/' + this.currentTemplateData.min + '-' + this.currentTemplateData.max + '語';
+    this.practiceWritingTotalCountElm.textContent = '合計0語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
   };
 
   Practice.prototype.setEvent = function() {
@@ -856,11 +860,11 @@
       that.practice2DivElms[1].classList.remove('d-none');
 
       let practiceWritingNotesElm = document.querySelector('.js-practiceWritingNotes');
-      practiceWritingNotesElm.innerHTML = that.currentTemplateData.notes.replace(/\n/g, '<br>');
+      practiceWritingNotesElm.innerHTML = that.currentPracticeData.notes.replace(/\n/g, '<br>');
 
       that.getRemainingTime('writing');
 
-      that.paragraphsNum = that.currentTemplateData.paragraphs;
+      that.paragraphsNum = that.currentPracticeData.paragraphs;
       let paragraphsDivElm = that.practiceDivElms[1].querySelector('.js-paragraphs');
       paragraphsDivElm.innerHTML = getParagraphsTextArea(false);
 
@@ -885,11 +889,11 @@
             that.totalNum += that.wordNum[cnt];
           }
         }
-        aElm.textContent = '合計' + that.totalNum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
+        aElm.textContent = '合計' + that.totalNum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
         aBtnElm.disabled = (that.totalNum) ? false : true;
         if(!aIndex) {
-          that.currentTemplateData.totalnum = that.totalNum;
-          that.currentTemplateData.wordnum = that.wordNum;  
+          that.currentPracticeData.totalnum = that.totalNum;
+          that.currentPracticeData.wordnum = that.wordNum;  
         }
       };
 
@@ -905,7 +909,7 @@
         for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
           textAreaValueArray[cnt] = practiceWritingTextAreaElms[0][cnt].value;
         }
-        that.currentTemplateData.sentences = textAreaValueArray;
+        that.currentPracticeData.sentences = textAreaValueArray;
         that.savePracticeData('3rd');
         that.getRemainingTime('proofreading');
 
@@ -917,11 +921,11 @@
         let practiceWritingReviseBtnElms = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingReviseBtn');
         let practiceWritingCancelBtnElms = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingCancelBtn');
 
-        that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentTemplateData.totalnum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
+        that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentPracticeData.totalnum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
 
         for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
           practiceWritingTextAreaElms[1][cnt].value = textAreaValueArray[cnt];
-          practiceWritingWordNumElms[1][cnt].textContent = that.currentTemplateData.wordnum[cnt];
+          practiceWritingWordNumElms[1][cnt].textContent = that.currentPracticeData.wordnum[cnt];
           practiceWritingReviseBtnElms[cnt].addEventListener('click', function() {
             that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
             if(that.isUnderEditArray[cnt]) {
@@ -940,9 +944,9 @@
               practiceWritingReviseBtnElms.forEach(elm => {
                 elm.disabled = false;
               });
-              that.currentTemplateData.sentences[cnt] = practiceWritingTextAreaElms[1][cnt].value;
-              that.currentTemplateData.wordnum[cnt] = that.wordNum[cnt];
-              that.currentTemplateData.totalnum = that.totalNum;
+              that.currentPracticeData.sentences[cnt] = practiceWritingTextAreaElms[1][cnt].value;
+              that.currentPracticeData.wordnum[cnt] = that.wordNum[cnt];
+              that.currentPracticeData.totalnum = that.totalNum;
             }
           });
           practiceWritingCancelBtnElms[cnt].addEventListener('click', function() {
@@ -953,9 +957,9 @@
             practiceWritingReviseBtnElms[cnt].textContent = '修正する';
             practiceWritingTextAreaElms[1][cnt].disabled = true;
             this.classList.add('d-none');
-            practiceWritingTextAreaElms[1][cnt].value = that.currentTemplateData.sentences[cnt];
-            practiceWritingWordNumElms[1][cnt].textContent = that.currentTemplateData.wordnum[cnt];
-            that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentTemplateData.totalnum + '語/' + that.currentTemplateData.min + '-' + that.currentTemplateData.max + '語';
+            practiceWritingTextAreaElms[1][cnt].value = that.currentPracticeData.sentences[cnt];
+            practiceWritingWordNumElms[1][cnt].textContent = that.currentPracticeData.wordnum[cnt];
+            that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentPracticeData.totalnum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
           });
           practiceWritingTextAreaElms[1][cnt].addEventListener('keyup', function() {
             getWordNum(1, that.practiceProofreadingTotalCountElm, practiceWritingReviseBtnElms[cnt]);
@@ -965,13 +969,13 @@
     });
 
     this.practicePageSelectElm[1].addEventListener('change', function() {
-      that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentTemplateData.templatename) ? false : true;
+      that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentPracticeData.templatename) ? false : true;
       that.tempTemplateNameForModal = this.value;
       that.tempTopicNameForModal = that.practicePageInputElm[1].value;
     });
 
     this.practicePageInputElm[1].addEventListener('keyup', function() {
-      that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentTemplateData.topicname) ? false : true;
+      that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentPracticeData.topicname) ? false : true;
       that.tempTopicNameForModal = this.value;
       that.tempTemplateNameForModal = that.practicePageSelectElm[1].value;
     });
@@ -994,6 +998,8 @@
     });
 
     this.goToReviewPageBtnElm.addEventListener('click', function() {
+      practiceDataGlobal = that.practiceData;
+      review.displayList();
       switchPages.resetPages();
       switchPages.setPage(1);
     });
@@ -1036,6 +1042,43 @@
     this.setEvent();
   };
 
+
+  const Review = function() {
+    this.initialize.apply(this, arguments);
+  };
+
+  Review.prototype.initialize = function() {
+    this.practiceData = practiceDataGlobal;
+  };
+
+  Review.prototype.displayList = function() {
+    let list = '';
+    this.practiceData.forEach((val, key) => {
+      list += `<div class="border rounded p-2 py-3 m-3">
+        <ul>
+          <li>設定：` + val.templatename + `</li>
+          <li>トピック：` + val.topicname + `</li>
+          <li>実施日時：` + val.displayDate + `</li>
+          <li>時間配分：` + val.displayTimeTaken + `</li>
+        </ul>
+        <div class="text-end">
+          <button class="btn btn-primary py-1 px-2 mx-2">確認する</button>
+        </div>
+      </div>`;
+    });
+    let reviewListElm = document.querySelector('.js-reviewList');
+    reviewListElm.innerHTML = list;
+  };
+
+  Review.prototype.setEvent = function() {
+    this.displayList();
+  };
+
+  Review.prototype.run = function() {
+    this.setEvent();
+  };
+
+
   window.addEventListener('DOMContentLoaded', function() {
     switchPages = new SwitchPages();
     switchPages.run();
@@ -1045,6 +1088,10 @@
 
     practice = new Practice();
     practice.run();
+    settings.run();
+
+    review = new Review();
+    review.run();
   });
 
 }());
