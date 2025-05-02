@@ -592,32 +592,8 @@
     this.deleteThisPracticeResultBtnElm = this.practiceResultBtnElms[1];
   };
 
-  Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTotalnum, aWordnum, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3, aDisplayDate, aDisplayTimeTaken) {
-    this.practiceData.set(aId, { 
-      templatename: (aTemplateData) ? aTemplateData : aValue.templatename,
-      topicname: (aTopicName) ? aTopicName : aValue.topicname,
-      paragraphs: aValue.paragraphs,
-      min: aValue.min,
-      max: aValue.max,
-      total: aValue.total,
-      planningtime: aValue.planningtime,
-      writingtime: aValue.writingtime,
-      proofreadingtime: aValue.proofreadingtime,
-      startTime: (aStartTime) ? aStartTime : aValue.startTime,
-      endTime: (aEndTime) ? aEndTime : aValue.endTime,
-      notes: (aNotes) ? aNotes : aValue.notes,
-      sentences: (aSentences) ? aSentences : aValue.sentences,
-      totalnum: (aTotalnum) ? aTotalnum : aValue.totalnum,
-      wordnum: (aWordnum) ? aWordnum : aValue.wordnum,
-      timetaken1: (aTimeTaken1) ? aTimeTaken1 : aValue.timetaken1,
-      isplus1: (aIsPlus1) ? aIsPlus1 : aValue.isplus1,
-      timetaken2: (aTimeTaken2) ? aTimeTaken2 : aValue.timetaken2,
-      isplus2: (aIsPlus2) ? aIsPlus2 : aValue.isplus2,
-      timetaken3: (aTimeTaken3) ? aTimeTaken3 : aValue.timetaken3,
-      isplus3: (aIsPlus3) ? aIsPlus3 : aValue.isplus3,
-      displayDate: (aDisplayDate) ? aDisplayDate : aValue.displayDate,
-      displayTimeTaken: (aDisplayTimeTaken) ? aDisplayTimeTaken : aValue.displayTimeTaken
-    });
+  Practice.prototype.setAndSaveData = function(aId, aValue) {
+    this.practiceData.set(aId, aValue);
     localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
   };
   
@@ -641,11 +617,22 @@
       let selectedOption = this.practicePageSelectElm[0].options[this.practicePageSelectElm[0].selectedIndex];
       let selectedOptionDataKey = selectedOption.dataset.key;
       this.selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
-      this.startTime = new Date();
+
       this.id = this.practiceData.size + 1;
+      this.startTime = new Date();
+      this.currentPracticeData.startTime = this.startTime;
       this.currentPracticeData.templatename = this.practicePageSelectElm[0].value;
       this.currentPracticeData.topicname = this.practicePageInputElm[0].value;
-      this.setAndSaveData(this.id, this.selectedTemplateData, this.currentPracticeData.templatename, this.currentPracticeData.topicname, this.startTime, null, null, null, null, null, null, null, null, null, null, null);
+
+      this.currentPracticeData.paragraphs = this.selectedTemplateData.paragraphs;
+      this.currentPracticeData.min = this.selectedTemplateData.min;
+      this.currentPracticeData.max = this.selectedTemplateData.max;
+      this.currentPracticeData.total = this.selectedTemplateData.total;
+      this.currentPracticeData.planningtime = this.selectedTemplateData.planningtime;
+      this.currentPracticeData.writingtime = this.selectedTemplateData.writingtime;
+      this.currentPracticeData.proofreadingtime = this.selectedTemplateData.proofreadingtime;
+
+      this.setAndSaveData(this.id, this.currentPracticeData);
       that.goToNextPage(1);
     }
     else if(aStatus=='2nd') {
@@ -654,18 +641,18 @@
       this.currentPracticeData.notes = this.practiceNotesTextAreaElm.value;
       this.currentPracticeData.timetaken1 = this.timeTaken;
       this.currentPracticeData.isplus1 = this.isPlus;
-      this.setAndSaveData(this.id, this.currentPracticeData, null, null, null, null, this.currentPracticeData.notes, null, null, null, this.currentPracticeData.timetaken1, this.currentPracticeData.isplus1, null, null, null, null);
+      this.setAndSaveData(this.id, this.currentPracticeData);
     }
     else if(aStatus=='modal') {
       this.currentPracticeData.templatename = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
       this.currentPracticeData.topicname = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
-      this.setAndSaveData(this.id, this.currentPracticeData, this.currentPracticeData.templatename, this.currentPracticeData.topicname, null, null, null, null, null, null, null, null, null, null, null, null);
+      this.setAndSaveData(this.id, this.currentPracticeData);
     }
     else if(aStatus=='3rd') {
       clearTimeout(this.timerID);
       this.currentPracticeData.timetaken2 = this.timeTaken;
       this.currentPracticeData.isplus2 = this.isPlus;
-      this.setAndSaveData(this.id, this.currentPracticeData, null, null, null, null, null, this.currentPracticeData.sentences, null, null, null, null, this.currentPracticeData.timetaken2, this.currentPracticeData.isplus2, null, null);
+      this.setAndSaveData(this.id, this.currentPracticeData);
       this.goToNextPage(2);
     }
     else if(aStatus=='4th') {
@@ -713,11 +700,11 @@
       clearTimeout(this.timerID);
       this.currentPracticeData.timetaken3 = this.timeTaken;
       this.currentPracticeData.isplus3 = this.isPlus;
-      let endTime = new Date();
       let startTime = new Date(this.currentPracticeData.startTime);
-      this.currentPracticeData.displayDate = getDisplayDateAndTime(startTime, endTime);
+      this.currentPracticeData.endTime = new Date();
+      this.currentPracticeData.displayDate = getDisplayDateAndTime(startTime, this.currentPracticeData.endTime);
       this.currentPracticeData.displayTimeTaken = getDisplayTimeTaken(this.currentPracticeData.timetaken1, this.currentPracticeData.timetaken2, this.currentPracticeData.timetaken3);
-      this.setAndSaveData(this.id, this.currentPracticeData, null, null, null, endTime, null, this.currentPracticeData.sentences, null, null, null, null, null, null, this.currentPracticeData.timetaken3, this.currentPracticeData.isplus3, this.currentPracticeData.displayDate, this.displayTimeTaken);
+      this.setAndSaveData(this.id, this.currentPracticeData);
       this.goToNextPage(3);
     }
   };
