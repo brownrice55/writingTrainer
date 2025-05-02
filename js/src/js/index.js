@@ -1046,28 +1046,65 @@
   };
 
   Review.prototype.initialize = function() {
+    this.templateData = templateDataGlobal;
+    this.topicData = topicDataGlobal;
+
     this.reviewContElms = document.querySelectorAll('.js-reviewCont');
     this.reviewContElm = document.querySelector('.js-reviewList');
 
     this.btnIndex = 0;
     this.backToListBtnElms = document.querySelectorAll('.js-list .js-backToList button');
+
+    this.reviewSearchSelectElms = document.querySelectorAll('.js-reviewSearchSelect');
+    this.selectedTemplate = '';
+    this.selectedTopic = ''
+  };
+
+  Review.prototype.searchPracticeData = function() {
+    const that = this;
+    let option = '<option value="">選択してください</option>';
+    this.templateData.forEach((val, key) => {
+      option += '<option value="' + val.templatename + '">' + val.templatename + '</option>';
+    });
+    this.reviewSearchSelectElms[0].innerHTML = option;
+
+    option = '<option value="">選択してください</option>';
+    this.topicData.forEach((val) => {
+      option += '<option value="' + val + '">' + val + '</option>';
+    });
+    this.reviewSearchSelectElms[1].innerHTML = option;
+
+    for(let cnt=0;cnt<2;++cnt) {
+      this.reviewSearchSelectElms[cnt].addEventListener('change', function() {
+        if(cnt) {
+          that.selectedTopic = this.value;
+        }
+        else {
+          that.selectedTemplate = this.value;
+        }
+        that.displayList();
+      });  
+    }
+
   };
 
   Review.prototype.displayList = function() {
     this.practiceData = practiceDataGlobal;
     let list = '';
     this.practiceData.forEach((val, key) => {
-      list += `<div class="border rounded p-2 py-3 m-3">
-        <ul>
-          <li>設定：` + val.templatename + `</li>
-          <li>トピック：` + val.topicname + `</li>
-          <li>実施日時：` + val.displayDate + `</li>
-          <li>時間配分：` + val.displayTimeTaken + `</li>
-        </ul>
-        <div class="text-end">
-          <button class="btn btn-primary py-1 px-2 mx-2 js-checkDetailBtn" data-index=` + key + `>確認する</button>
-        </div>
-      </div>`;
+      if(val.templatename==this.selectedTemplate && val.topicname==this.selectedTopic || val.templatename==this.selectedTemplate && this.selectedTopic=='' || val.topicname==this.selectedTopic && this.selectedTemplate=='' || this.selectedTemplate=='' && this.selectedTopic=='') {
+        list += `<div class="border rounded p-2 py-3 m-3">
+          <ul>
+            <li>設定：` + val.templatename + `</li>
+            <li>トピック：` + val.topicname + `</li>
+            <li>実施日時：` + val.displayDate + `</li>
+            <li>時間配分：` + val.displayTimeTaken + `</li>
+          </ul>
+          <div class="text-end">
+            <button class="btn btn-primary py-1 px-2 mx-2 js-checkDetailBtn" data-index=` + key + `>確認する</button>
+          </div>
+        </div>`;
+      }
     });
     this.reviewContElm.innerHTML = list;
 
@@ -1085,6 +1122,7 @@
 
   Review.prototype.setEvent = function() {
     this.displayList();
+    this.searchPracticeData();
 
     const that = this;
     this.backToListBtnElms.forEach(elm => {
