@@ -591,7 +591,7 @@
     this.deleteThisPracticeResultBtnElm = this.practiceResultBtnElms[1];
   };
 
-  Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTotalnum, aWordnum, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3) {
+  Practice.prototype.setAndSaveData = function(aId, aValue, aTemplateData, aTopicName, aStartTime, aEndTime, aNotes, aSentences, aTotalnum, aWordnum, aTimeTaken1, aIsPlus1, aTimeTaken2, aIsPlus2, aTimeTaken3, aIsPlus3, aDisplayDate, aDisplayTimeTaken) {
     this.practiceData.set(aId, { 
       templatename: (aTemplateData) ? aTemplateData : aValue.templatename,
       topicname: (aTopicName) ? aTopicName : aValue.topicname,
@@ -613,7 +613,9 @@
       timetaken2: (aTimeTaken2) ? aTimeTaken2 : aValue.timetaken2,
       isplus2: (aIsPlus2) ? aIsPlus2 : aValue.isplus2,
       timetaken3: (aTimeTaken3) ? aTimeTaken3 : aValue.timetaken3,
-      isplus3: (aIsPlus3) ? aIsPlus3 : aValue.isplus3
+      isplus3: (aIsPlus3) ? aIsPlus3 : aValue.isplus3,
+      displayDate: (aDisplayDate) ? aDisplayDate : aValue.displayDate,
+      displayTimeTaken: (aDisplayTimeTaken) ? aDisplayTimeTaken : aValue.displayTimeTaken
     });
     localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
   };
@@ -661,15 +663,58 @@
       this.currentTemplateData.timetaken2 = this.timeTaken;
       this.currentTemplateData.isplus2 = this.isPlus;
       this.setAndSaveData(this.id, this.currentTemplateData, null, null, null, null, null, this.currentTemplateData.sentences, null, null, null, null, this.currentTemplateData.timetaken2, this.currentTemplateData.isplus2, null, null);
-      that.goToNextPage(2);
+      this.goToNextPage(2);
     }
     else if(aStatus=='4th') {
+
+      const getDisplayDateAndTime = function(aStartTime, aEndTime) {
+        const getTime = (aTime) => {
+          let date = new Date(aTime);
+          let dateY = date.getFullYear();
+          let dateM = date.getMonth();
+          let dateD = date.getDay();
+          let dateH = date.getHours();
+          let dateMi = date.getMinutes();
+          if(dateMi<10) {
+            dateMi = '0' + dateMi;
+          }
+          return [dateY, dateM, dateD, dateH, dateMi];
+        };
+    
+        let startTime = getTime(aStartTime);
+        let endTime = getTime(aEndTime);
+    
+        let result = startTime[0] + '/' + startTime[1] + '/' + startTime[2] + ' ' + startTime[3] + ':' + startTime[4] + '〜';
+        result += (startTime[0]==endTime[0] && startTime[1]==endTime[1] && startTime[2]==endTime[2]) ? '' : (endTime[0] + '/' + endTime[1] + '/' + endTime[2] + ' ');
+        result += endTime[3] + ':' + endTime[4];
+        return result;
+      };
+
+      const getDisplayTimeTaken = (aTimeTaken1, aTimeTaken2, aTimeTaken3) => {
+        const getTimeTakenForDisplay = (aTimeTaken) => {
+          let second = Math.round(parseInt(aTimeTaken)/1000);
+          if(second>60) {
+            let result = (second%60) ? (Math.floor(second/60) + '分' + second%60 + '秒') : (Math.floor(second/60) + '分');
+            return result;
+          }
+          return (second + '秒');
+        };
+  
+        let result = 'メモ' + getTimeTakenForDisplay(this.currentTemplateData.timetaken1) + '、';
+        result += 'ライティング' + getTimeTakenForDisplay(this.currentTemplateData.timetaken2) + '、';
+        result += '校正' + getTimeTakenForDisplay(this.currentTemplateData.timetaken3);
+
+        return result;
+      };
+
       clearTimeout(this.timerID);
       this.currentTemplateData.timetaken3 = this.timeTaken;
       this.currentTemplateData.isplus3 = this.isPlus;
       let endTime = new Date();
-      this.setAndSaveData(this.id, this.currentTemplateData, null, null, null, endTime, null, this.currentTemplateData.sentences, null, null, null, null, null, null, this.currentTemplateData.timetaken3, this.currentTemplateData.isplus3);
-      that.goToNextPage(3);
+      this.currentTemplateData.displayDate = getDisplayDateAndTime(this.currentTemplateData.startTime, endTime);
+      this.currentTemplateData.displayTimeTaken = getDisplayTimeTaken(this.currentTemplateData.timetaken1, this.currentTemplateData.timetaken2, this.currentTemplateData.timetaken3);
+      this.setAndSaveData(this.id, this.currentTemplateData, null, null, null, endTime, null, this.currentTemplateData.sentences, null, null, null, null, null, null, this.currentTemplateData.timetaken3, this.currentTemplateData.isplus3, this.currentTemplateData.displayDate, this.displayTimeTaken);
+      this.goToNextPage(3);
     }
   };
 
@@ -966,44 +1011,10 @@
     let practiceResultElms = document.querySelectorAll('.js-practiceResult');
     let data = this.practiceData.get(this.id);
 
-    const getTimeTakenForDisplay = (aTimeTaken) => {
-      let second = Math.round(parseInt(aTimeTaken)/1000);
-      if(second>60) {
-        let result = (second%60) ? (Math.floor(second/60) + '分' + second%60 + '秒') : (Math.floor(second/60) + '分');
-        return result;
-      }
-      return (second + '秒');
-    };
-
-    const getTime = (aTime) => {
-      let date = new Date(aTime);
-      let dateY = date.getFullYear();
-      let dateM = date.getMonth();
-      let dateD = date.getDay();
-      let dateH = date.getHours();
-      let dateMi = date.getMinutes();
-      if(dateMi<10) {
-        dateMi = '0' + dateMi;
-      }
-      return [dateY, dateM, dateD, dateH, dateMi];
-    };
-
-    const displayTime = (aStartTime, aEndTime) => {
-      let startTime = getTime(aStartTime);
-      let endTime = getTime(aEndTime);
-
-      let result = '実施日時：' + startTime[0] + '/' + startTime[1] + '/' + startTime[2] + ' ' + startTime[3] + ':' + startTime[4] + '〜';
-      result += (startTime[0]==endTime[0] && startTime[1]==endTime[1] && startTime[2]==endTime[2]) ? '' : (endTime[0] + '/' + endTime[1] + '/' + endTime[2]);
-      result += endTime[3] + ':' + endTime[4] + '<br>';
-      return result;
-    };
-
     let result = '設定：' + data.templatename + '<br>';
     result += 'トピック：' + data.topicname + '<br>';
-    result += displayTime(data.startTime, data.endTime);
-    result += '所要時間：メモ' + getTimeTakenForDisplay(data.timetaken1) + '、';
-    result += 'ライティング' + getTimeTakenForDisplay(data.timetaken2) + '、';
-    result += '校正' + getTimeTakenForDisplay(data.timetaken3);
+    result += '実施日時：' + data.displayDate + '<br>';
+    result += '所要時間：' + data.displayTimeTaken + '<br>';
 
     practiceResultElms[0].innerHTML = result;
     practiceResultElms[1].innerHTML = data.notes.replace(/\n/g, '<br>');
