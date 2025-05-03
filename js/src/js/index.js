@@ -992,7 +992,8 @@
     // 4th page start
     this.practiceCompleteBtnElm.addEventListener('click', function() {
       that.savePracticeData('4th');
-      that.displayResult(that.id, '.js-practiceResult', that.practiceData);
+      let currentData = that.practiceData.get(that.id);
+      that.displayResult('.js-practiceResult', currentData);
     });
 
     this.goToReviewPageBtnElm.addEventListener('click', function() {
@@ -1011,27 +1012,26 @@
     // 4th page end
   };
 
-  Practice.prototype.displayResult = function(aId, aClass, aData) {
+  Practice.prototype.displayResult = function(aClass, aCurrentData) {
     let resultElms = document.querySelectorAll(aClass);
-    let data = aData.get(aId);
 
-    let result = '設定：' + data.templatename + '<br>';
-    result += 'トピック：' + data.topicname + '<br>';
-    result += '実施日時：' + data.displayDate + '<br>';
-    result += '所要時間：' + data.displayTimeTaken + '<br>';
+    let result = '設定：' + aCurrentData.templatename + '<br>';
+    result += 'トピック：' + aCurrentData.topicname + '<br>';
+    result += '実施日時：' + aCurrentData.displayDate + '<br>';
+    result += '所要時間：' + aCurrentData.displayTimeTaken + '<br>';
 
     resultElms[0].innerHTML = result;
-    resultElms[1].innerHTML = data.notes.replace(/\n/g, '<br>');
+    resultElms[1].innerHTML = aCurrentData.notes.replace(/\n/g, '<br>');
 
     result = '';
-    for(let cnt=0,len=data.sentences.length;cnt<len;++cnt) {
-      if(data.sentences[cnt]) {
-        result += '<p>' + data.sentences[cnt] + '</p>';
+    for(let cnt=0,len=aCurrentData.sentences.length;cnt<len;++cnt) {
+      if(aCurrentData.sentences[cnt]) {
+        result += '<p>' + aCurrentData.sentences[cnt] + '</p>';
       }
     }
     resultElms[2].innerHTML = result;
 
-    result = '合計' + data.totalnum + '語 / ' + data.min + '-' + data.max + '語';
+    result = '合計' + aCurrentData.totalnum + '語 / ' + aCurrentData.min + '-' + aCurrentData.max + '語';
     resultElms[3].innerHTML = result;
 
   };
@@ -1058,6 +1058,9 @@
     this.reviewSearchSelectElms = document.querySelectorAll('.js-reviewSearchSelect');
     this.selectedTemplate = '';
     this.selectedTopic = ''
+
+    this.playbackBtnElm = document.querySelector('.js-playbackBtn');
+    this.text = '';
   };
 
   Review.prototype.searchPracticeData = function() {
@@ -1113,9 +1116,11 @@
     this.checkDetailBtnElms.forEach(elm => {
       elm.addEventListener('click', function() {
         that.btnIndex = parseInt(this.dataset.index);
-        practice.displayResult(that.btnIndex, '.js-reviewResult', that.practiceData);
+        let currentData = that.practiceData.get(that.btnIndex);
+        practice.displayResult('.js-reviewResult', currentData);
         that.reviewContElms[0].classList.add('d-none');
         that.reviewContElms[1].classList.remove('d-none');
+        that.text = currentData.sentences;
       });
     });
   };
@@ -1129,6 +1134,7 @@
       elm.addEventListener('click', function() {
         that.reviewContElms[0].classList.remove('d-none');
         that.reviewContElms[1].classList.add('d-none');
+        speechSynthesis.cancel();
       });
     });
 
@@ -1136,10 +1142,21 @@
     this.goToPracticeBtnElm.addEventListener('click', function() {
       that.reviewContElms[0].classList.remove('d-none');
       that.reviewContElms[1].classList.add('d-none');
+      speechSynthesis.cancel();
       switchPages.resetPages();
       switchPages.setPage(0);
     });
 
+    
+    this.playbackBtnElm.addEventListener('click', function() {
+      let text = '';
+      that.text.forEach(val => {
+        text += val + '     ';
+      });
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+    });
   };
 
   Review.prototype.run = function() {
