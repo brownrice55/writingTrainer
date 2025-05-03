@@ -25,6 +25,8 @@
   };
 
   SwitchPages.prototype.initialize = function() {
+    this.practiceData = practiceDataGlobal;
+
     this.globalMenuElm = document.querySelector('.js-globalMenu');
     this.globalMenuLiElms = this.globalMenuElm.querySelectorAll('li');
     this.sectionElms = document.querySelectorAll('section');
@@ -45,8 +47,19 @@
     this.sectionElms[aIndex].classList.remove('d-none');
   };
 
+  SwitchPages.prototype.hideOrDisplayMenuToReview = function(aDoesDataExist) {
+    if(aDoesDataExist) {
+      this.globalMenuLiElms[1].classList.remove('d-none');
+    }
+    else {
+      this.globalMenuLiElms[1].classList.add('d-none');
+    }
+  };
+
   SwitchPages.prototype.setEvent = function() {
     this.setPage();
+
+    this.hideOrDisplayMenuToReview(this.practiceData.size);
 
     const that = this;
     for(let cnt=0,len=this.globalMenuLiElms.length;cnt<len;++cnt) {
@@ -641,7 +654,6 @@
       this.currentPracticeData.planningtime = this.selectedTemplateData.planningtime;
       this.currentPracticeData.writingtime = this.selectedTemplateData.writingtime;
       this.currentPracticeData.proofreadingtime = this.selectedTemplateData.proofreadingtime;
-
       this.setAndSaveData(this.id, this.currentPracticeData);
       that.goToNextPage(1);
     }
@@ -667,13 +679,12 @@
       this.goToNextPage(2);
     }
     else if(aStatus=='4th') {
-
       const getDisplayDateAndTime = function(aStartTime, aEndTime) {
         const getTime = (aTime) => {
           let date = new Date(aTime);
           let dateY = date.getFullYear();
-          let dateM = date.getMonth();
-          let dateD = date.getDay();
+          let dateM = date.getMonth() + 1;
+          let dateD = date.getDate();
           let dateH = date.getHours();
           let dateMi = date.getMinutes();
           if(dateMi<10) {
@@ -684,7 +695,6 @@
 
         let startTime = getTime(aStartTime);
         let endTime = getTime(aEndTime);
-    
         let result = startTime[0] + '/' + startTime[1] + '/' + startTime[2] + ' ' + startTime[3] + ':' + startTime[4] + '〜';
         result += (startTime[0]==endTime[0] && startTime[1]==endTime[1] && startTime[2]==endTime[2]) ? '' : (endTime[0] + '/' + endTime[1] + '/' + endTime[2] + ' ');
         result += endTime[3] + ':' + endTime[4];
@@ -791,6 +801,7 @@
   };
 
   Practice.prototype.setSecondPage = function() {
+    this.currentPracticeData = new Map();
     this.currentPracticeData = this.practiceData.get(this.id);
     this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentPracticeData.templatename + '<br>トピック：' + this.currentPracticeData.topicname;
     this.getRemainingTime('planning');
@@ -994,6 +1005,7 @@
       that.savePracticeData('4th');
       let currentData = that.practiceData.get(that.id);
       that.displayResult('.js-practiceResult', currentData);
+      switchPages.hideOrDisplayMenuToReview(true);
     });
 
     this.goToReviewPageBtnElm.addEventListener('click', function() {
@@ -1007,6 +1019,7 @@
       that.practiceData.delete(that.id);
       localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...that.practiceData]));
       // that.goToNextPage(0);//要検討　後で見直し
+      // this.hideOrDisplayMenuToReview(that.practiceData.size);//要検討　後で見直し
       window.location.reload(false);//要検討　後で見直し
     });
     // 4th page end
@@ -1061,6 +1074,8 @@
 
     this.playbackBtnElm = document.querySelector('.js-playbackBtn');
     this.text = '';
+
+    this.deleteThisPracticeBtnElm = document.querySelector('.js-deleteThisPracticeBtn');
   };
 
   Review.prototype.searchPracticeData = function() {
@@ -1088,7 +1103,6 @@
         that.displayList();
       });  
     }
-
   };
 
   Review.prototype.displayList = function() {
@@ -1143,11 +1157,8 @@
       that.reviewContElms[0].classList.remove('d-none');
       that.reviewContElms[1].classList.add('d-none');
       speechSynthesis.cancel();
-      switchPages.resetPages();
-      switchPages.setPage(0);
     });
 
-    
     this.playbackBtnElm.addEventListener('click', function() {
       let text = '';
       that.text.forEach(val => {
@@ -1156,6 +1167,32 @@
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
       speechSynthesis.speak(utterance);
+    });
+
+    const deleteAndSortPracticeData = () => {
+      this.practiceData.delete(this.btnIndex);
+      let tempPracticeData = new Map();
+      this.practiceData.forEach((val, key) => {
+        tempPracticeData.set(key, val);
+      });
+      this.practiceData = tempPracticeData;
+      localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
+    };
+
+    this.deleteThisPracticeBtnElm.addEventListener('click', function() {
+      speechSynthesis.cancel();
+      deleteAndSortPracticeData();
+      if(that.practiceData.size) {
+        that.reviewContElms[0].classList.remove('d-none');
+        that.reviewContElms[1].classList.add('d-none');
+        that.displayList();  
+      }
+      else {
+        practice.setSelectArea(0);
+        practice.resetPractice();
+        switchPages.resetPages();
+        switchPages.setPage();
+      }
     });
   };
 

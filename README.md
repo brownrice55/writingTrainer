@@ -47,9 +47,9 @@ Could you please let me know if there are any errors in my English or code?</p>
 | ---- | ---- | ---- |
 | <img src="https://github.com/user-attachments/assets/f8a64426-0c0e-4a09-8619-db7e8047a710" width="200"> |  |  |
 
-| 練習スタート（設定後top） |  |  |
+| 練習スタート（設定後top） | 練習スタート（練習再開可） |  |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/17764e2c-f467-444e-8e4b-d27c8fee4aee" width="200"> |  |  |
+| <img src="https://github.com/user-attachments/assets/17764e2c-f467-444e-8e4b-d27c8fee4aee" width="200"> | <img src="https://github.com/user-attachments/assets/738603e2-4ffd-48f7-afb4-55b7ebff96a7" width="200"> |  |
 
 | メモ設定 | ライティング開始 | 校正 |
 | ---- | ---- | ---- |
@@ -61,7 +61,7 @@ Could you please let me know if there are any errors in my English or code?</p>
 
 | 練習の見直し　一覧 | 練習の見直し　検索 | 練習の見直し　詳細 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/d6478ba6-e3e2-4381-9786-cb14a3057f6c" width="200"> | <img src="https://github.com/user-attachments/assets/eee2bf73-b0b8-4417-86d1-6aa42a69652e" width="200"> | <img src="https://github.com/user-attachments/assets/d236bec6-3fd0-4c00-b459-7144d751922c" width="200"> |
+| <img src="https://github.com/user-attachments/assets/d6478ba6-e3e2-4381-9786-cb14a3057f6c" width="200"> | <img src="https://github.com/user-attachments/assets/eee2bf73-b0b8-4417-86d1-6aa42a69652e" width="200"> | <img src="https://github.com/user-attachments/assets/06e4a7b9-c26c-4c11-b29a-b9ce7b6127db" width="200"> |
 
 
 ## 参考
