@@ -17,8 +17,15 @@
     practiceDataGlobal = new Map(practiceDataJson);
   }
 
-
   let switchPages, settings, practice, review;
+
+  const getDoesComplateDataExist = (aData) => {
+    aData.forEach((val, key) => {
+      if(val.status=='complete') {
+        return true;
+      }
+    });
+  };
 
   const SwitchPages = function() {
     this.initialize.apply(this, arguments);
@@ -59,7 +66,8 @@
   SwitchPages.prototype.setEvent = function() {
     this.setPage();
 
-    this.hideOrDisplayMenuToReview(this.practiceData.size);
+    let doesComplateDataExist = getDoesComplateDataExist(this.practiceData);
+    this.hideOrDisplayMenuToReview(doesComplateDataExist);
 
     const that = this;
     for(let cnt=0,len=this.globalMenuLiElms.length;cnt<len;++cnt) {
@@ -70,6 +78,7 @@
         that.navbarBtn.classList.add('collapsed');
         that.globalMenuElm.classList.remove('show');
         if(cnt==0) {
+          practice.displayResumptionList();
           practice.setSelectArea(0);
           practice.resetPractice();
         }
@@ -634,6 +643,31 @@
       this.practiceDivElms[aNextIndex].classList.remove('d-none');
     };
 
+    const getDisplayDateAndTime = function(aStartTime, aEndTime) {
+      const getTime = (aTime) => {
+        let date = new Date(aTime);
+        let dateY = date.getFullYear();
+        let dateM = date.getMonth() + 1;
+        let dateD = date.getDate();
+        let dateH = date.getHours();
+        let dateMi = date.getMinutes();
+        if(dateMi<10) {
+          dateMi = '0' + dateMi;
+        }
+        return [dateY, dateM, dateD, dateH, dateMi];
+      };
+
+      let startTimeForDisplay = getTime(aStartTime);
+      let result = startTimeForDisplay[0] + '/' + startTimeForDisplay[1] + '/' + startTimeForDisplay[2] + ' ' + startTimeForDisplay[3] + ':' + startTimeForDisplay[4];
+      if(aEndTime) {
+        let endTimeForDisplay = getTime(aEndTime);
+        result += '〜';
+        result += (startTimeForDisplay[0]==endTimeForDisplay[0] && startTimeForDisplay[1]==endTimeForDisplay[1] && startTimeForDisplay[2]==endTimeForDisplay[2]) ? '' : (endTimeForDisplay[0] + '/' + endTimeForDisplay[1] + '/' + endTimeForDisplay[2] + ' ');
+        result += endTimeForDisplay[3] + ':' + endTimeForDisplay[4];  
+      }
+      return result;
+    };
+
     if(aStatus=='1st') {
       let selectedOption = this.practicePageSelectElm[0].options[this.practicePageSelectElm[0].selectedIndex];
       let selectedOptionDataKey = selectedOption.dataset.key;
@@ -646,6 +680,8 @@
       this.currentPracticeData.topicname = this.practicePageInputElm[0].value;
       this.practicePageSelectElm[0].value = '';
       this.practicePageInputElm[0].value = '';
+      this.currentPracticeData.status = '1st';
+      this.currentPracticeData.displayDate = getDisplayDateAndTime(this.startTime, null);
 
       this.currentPracticeData.paragraphs = this.selectedTemplateData.paragraphs;
       this.currentPracticeData.min = this.selectedTemplateData.min;
@@ -664,6 +700,7 @@
       this.practiceNotesTextAreaElm.value = '';
       this.currentPracticeData.timetaken1 = this.timeTaken;
       this.currentPracticeData.isplus1 = this.isPlus;
+      this.currentPracticeData.status = '2nd';
       this.setAndSaveData(this.id, this.currentPracticeData);
     }
     else if(aStatus=='modal') {
@@ -675,32 +712,11 @@
       clearTimeout(this.timerID);
       this.currentPracticeData.timetaken2 = this.timeTaken;
       this.currentPracticeData.isplus2 = this.isPlus;
+      this.currentPracticeData.status = '3rd';
       this.setAndSaveData(this.id, this.currentPracticeData);
       this.goToNextPage(2);
     }
     else if(aStatus=='4th') {
-      const getDisplayDateAndTime = function(aStartTime, aEndTime) {
-        const getTime = (aTime) => {
-          let date = new Date(aTime);
-          let dateY = date.getFullYear();
-          let dateM = date.getMonth() + 1;
-          let dateD = date.getDate();
-          let dateH = date.getHours();
-          let dateMi = date.getMinutes();
-          if(dateMi<10) {
-            dateMi = '0' + dateMi;
-          }
-          return [dateY, dateM, dateD, dateH, dateMi];
-        };
-
-        let startTime = getTime(aStartTime);
-        let endTime = getTime(aEndTime);
-        let result = startTime[0] + '/' + startTime[1] + '/' + startTime[2] + ' ' + startTime[3] + ':' + startTime[4] + '〜';
-        result += (startTime[0]==endTime[0] && startTime[1]==endTime[1] && startTime[2]==endTime[2]) ? '' : (endTime[0] + '/' + endTime[1] + '/' + endTime[2] + ' ');
-        result += endTime[3] + ':' + endTime[4];
-        return result;
-      };
-
       const getDisplayTimeTaken = (aTimeTaken1, aTimeTaken2, aTimeTaken3) => {
         const getTimeTakenForDisplay = (aTimeTaken) => {
           let second = Math.round(parseInt(aTimeTaken)/1000);
@@ -721,10 +737,11 @@
       clearTimeout(this.timerID);
       this.currentPracticeData.timetaken3 = this.timeTaken;
       this.currentPracticeData.isplus3 = this.isPlus;
-      let startTime = new Date(this.currentPracticeData.startTime);
+      let startTime = new Date(this.startTime);
       this.currentPracticeData.endTime = new Date();
       this.currentPracticeData.displayDate = getDisplayDateAndTime(startTime, this.currentPracticeData.endTime);
       this.currentPracticeData.displayTimeTaken = getDisplayTimeTaken(this.currentPracticeData.timetaken1, this.currentPracticeData.timetaken2, this.currentPracticeData.timetaken3);
+      this.currentPracticeData.status = 'complete';
       this.setAndSaveData(this.id, this.currentPracticeData);
       this.goToNextPage(3);
     }
@@ -815,6 +832,8 @@
     const that = this;
 
     // 1st page start
+    this.displayResumptionList();
+
     this.practicePageSelectElm[0].addEventListener('change', function() {
       if(this.value=='addNewTemplate') {
         switchPages.resetPages();
@@ -834,7 +853,7 @@
       that.setSelectArea(1);
       that.practice2DivElms[0].classList.remove('d-none');
       that.practice2DivElms[1].classList.add('d-none');
-    });  
+    });
     // 1st page end
 
     // 2nd and 3rd page start
@@ -1046,13 +1065,66 @@
 
     result = '合計' + aCurrentData.totalnum + '語 / ' + aCurrentData.min + '-' + aCurrentData.max + '語';
     resultElms[3].innerHTML = result;
+  };
 
+  Practice.prototype.displayResumptionList = function() {
+    const that = this;
+
+    let resumption = document.querySelector('.js-resumption');
+    let resumptionListElm = document.querySelector('.js-resumptionList');
+    let result = '';
+    this.practiceData.forEach((val, key) => {
+      if(val.status!='complete') {
+        result += '<div class="border rounded p-2 py-3 m-3">';
+        result += '<ul><li>設定：' + val.templatename + '</li>';
+        result += '<li>トピック：' + val.topicname + '</li>';
+        result += '<li>実施日時：' + val.displayDate + '</li></ul>';
+        result += `<div class="text-end">
+                    <button class="btn btn-primary mx-2 js-deleteResumptionListBtn" data-index="` + key + `">削除する</button>
+                    <button class="btn btn-primary mx-2 js-resumeBtn">再開する</button>
+                  </div>
+                  </div>`;
+        resumption.classList.remove('d-none');
+      }
+    });
+
+    if(result) {
+      resumptionListElm.innerHTML = result;
+      resumptionListElm.parentNode.classList.remove('d-none');
+
+      let id = 0;
+      let deleteResumptionListBtnElms = document.querySelectorAll('.js-deleteResumptionListBtn');
+      deleteResumptionListBtnElms.forEach(elm => {
+        elm.addEventListener('click', function() {
+          id = parseInt(this.dataset.index);
+          that.practiceData = deleteAndSortPracticeData(id, that.practiceData);
+          localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...that.practiceData]));
+
+          let doesComplateDataExist = getDoesComplateDataExist(that.practiceData);
+          if(!doesComplateDataExist) {
+            resumption.classList.add('d-none');
+          }
+        });
+      });
+    }
+    else {
+      resumptionListElm.parentNode.classList.add('d-none');
+    }
   };
 
   Practice.prototype.run = function() {
     this.setEvent();
   };
 
+  const deleteAndSortPracticeData = (aId, aData) => {
+    aData.delete(aId);
+    let tempPracticeData = new Map();
+    aData.forEach((val, key) => {
+      tempPracticeData.set(key, val);
+    });
+    localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...aData]));
+    return tempPracticeData;
+  };
 
   const Review = function() {
     this.initialize.apply(this, arguments);
@@ -1109,18 +1181,20 @@
     this.practiceData = practiceDataGlobal;
     let list = '';
     this.practiceData.forEach((val, key) => {
-      if(val.templatename==this.selectedTemplate && val.topicname==this.selectedTopic || val.templatename==this.selectedTemplate && this.selectedTopic=='' || val.topicname==this.selectedTopic && this.selectedTemplate=='' || this.selectedTemplate=='' && this.selectedTopic=='') {
-        list += `<div class="border rounded p-2 py-3 m-3">
-          <ul>
-            <li>設定：` + val.templatename + `</li>
-            <li>トピック：` + val.topicname + `</li>
-            <li>実施日時：` + val.displayDate + `</li>
-            <li>時間配分：` + val.displayTimeTaken + `</li>
-          </ul>
-          <div class="text-end">
-            <button class="btn btn-primary py-1 px-2 mx-2 js-checkDetailBtn" data-index=` + key + `>確認する</button>
-          </div>
-        </div>`;
+      if(val.status=='complete') {
+        if(val.templatename==this.selectedTemplate && val.topicname==this.selectedTopic || val.templatename==this.selectedTemplate && this.selectedTopic=='' || val.topicname==this.selectedTopic && this.selectedTemplate=='' || this.selectedTemplate=='' && this.selectedTopic=='') {
+          list += `<div class="border rounded p-2 py-3 m-3">
+            <ul>
+              <li>設定：` + val.templatename + `</li>
+              <li>トピック：` + val.topicname + `</li>
+              <li>実施日時：` + val.displayDate + `</li>
+              <li>時間配分：` + val.displayTimeTaken + `</li>
+            </ul>
+            <div class="text-end">
+              <button class="btn btn-primary py-1 px-2 mx-2 js-checkDetailBtn" data-index=` + key + `>確認する</button>
+            </div>
+          </div>`;
+        }
       }
     });
     this.reviewContElm.innerHTML = list;
@@ -1169,25 +1243,18 @@
       speechSynthesis.speak(utterance);
     });
 
-    const deleteAndSortPracticeData = () => {
-      this.practiceData.delete(this.btnIndex);
-      let tempPracticeData = new Map();
-      this.practiceData.forEach((val, key) => {
-        tempPracticeData.set(key, val);
-      });
-      this.practiceData = tempPracticeData;
-      localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
-    };
-
     this.deleteThisPracticeBtnElm.addEventListener('click', function() {
       speechSynthesis.cancel();
-      deleteAndSortPracticeData();
-      if(that.practiceData.size) {
-        that.reviewContElms[0].classList.remove('d-none');
-        that.reviewContElms[1].classList.add('d-none');
-        that.displayList();  
-      }
-      else {
+      that.practiceData = deleteAndSortPracticeData(that.btnIndex, that.practiceData);
+
+      that.displayList();
+      that.reviewContElms[0].classList.remove('d-none');
+      that.reviewContElms[1].classList.add('d-none');
+
+      let doesComplateDataExist = getDoesComplateDataExist(that.practiceData);
+      switchPages.hideOrDisplayMenuToReview(doesComplateDataExist);
+
+      if(!doesComplateDataExist) {
         practice.setSelectArea(0);
         practice.resetPractice();
         switchPages.resetPages();
