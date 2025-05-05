@@ -27,6 +27,14 @@
     }
   };
 
+  const getDoesNotComplateDataExist = (aData) => {
+    for(const [key, val] of aData.entries()) {
+      if(val.status!='complete') {
+        return true;
+      }
+    }
+  };
+
   const SwitchPages = function() {
     this.initialize.apply(this, arguments);
   };
@@ -612,6 +620,9 @@
     this.practiceResultBtnElms = document.querySelectorAll('.js-practiceResultBtn');
     this.goToReviewPageBtnElm = this.practiceResultBtnElms[0];
     this.deleteThisPracticeResultBtnElm = this.practiceResultBtnElms[1];
+
+    this.practiceWritingTextAreaElms = Array(2);
+    this.practiceWritingWordNumElms = Array(2);
   };
 
   Practice.prototype.resetPractice = function() {
@@ -834,7 +845,152 @@
     this.practiceWritingTotalCountElm.textContent = '合計0語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
   };
 
+  Practice.prototype.getParagraphsTextArea = function(aDisabled) {
+    let paragraphsTextArea = '';
+    let disabled = (aDisabled) ? ' disabled' : '';
+    for(cnt=0;cnt<this.paragraphsNum;++cnt) {
+      paragraphsTextArea += `<div class="row mb-4">`;
+      if(aDisabled) {
+        paragraphsTextArea += `<div class="position-relative">`;
+      }
+      paragraphsTextArea += `<textarea class="form-control js-practiceWritingTextArea" rows="7"` + disabled + `></textarea>`;
+      if(aDisabled) {
+        paragraphsTextArea += `<div class="position-absolute bottom-0 end-0 mb-2 me-4">
+        <button class="btn btn-secondary d-none js-practiceWritingCancelBtn">キャンセル</button>
+        <button class="btn btn-primary js-practiceWritingReviseBtn">修正する</button>
+        </div></div>`;
+      }
+      paragraphsTextArea += `<div class="text-end"><span class="js-practiceWritingWordNum"></span>語</div></div>`;
+    }
+    return paragraphsTextArea;
+  };
+
   Practice.prototype.setWritingPage = function(aCurrentPracticeData, aId) {
+
+    if(aCurrentPracticeData!=null) {
+      this.currentPracticeData = aCurrentPracticeData;
+      this.id = aId;
+    }
+
+    const that = this;
+
+    let practiceWritingNotesElm = document.querySelector('.js-practiceWritingNotes');
+    practiceWritingNotesElm.innerHTML = this.currentPracticeData.notes.replace(/\n/g, '<br>');
+
+    this.getRemainingTime('writing');
+
+    this.paragraphsNum = this.currentPracticeData.paragraphs;
+    let paragraphsDivElm = this.practiceDivElms[1].querySelector('.js-paragraphs');
+    paragraphsDivElm.innerHTML = this.getParagraphsTextArea(false);
+
+    let practiceProofreadingStartBtnElm = document.querySelector('.js-practiceProofreadingStartBtn');
+    practiceProofreadingStartBtnElm.disabled = true;
+
+    this.practiceWritingTextAreaElms[0] = this.practiceDivElms[1].querySelectorAll('.js-practiceWritingTextArea');
+    this.practiceWritingWordNumElms[0] = this.practiceDivElms[1].querySelectorAll('.js-practiceWritingWordNum');
+
+    const getWordNum = (aIndex, aElm, aBtnElm) => {
+      this.totalNum = 0;
+      this.wordNum = Array(this.paragraphsNum);
+      for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
+        this.wordNum[cnt] = 0;
+        let valueArray = this.practiceWritingTextAreaElms[aIndex][cnt].value.split(' ');
+        let valueArrayTrue = valueArray.map(val=>(val!='')).filter(Boolean);
+        this.wordNum[cnt] = valueArrayTrue.length;
+        this.practiceWritingWordNumElms[aIndex][cnt].textContent = this.wordNum[cnt];
+        if(valueArrayTrue) {
+          this.totalNum += this.wordNum[cnt];
+        }
+      }
+      aElm.textContent = '合計' + this.totalNum + '語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
+      aBtnElm.disabled = (this.totalNum) ? false : true;
+      if(!aIndex) {
+        this.currentPracticeData.totalnum = this.totalNum;
+        this.currentPracticeData.wordnum = this.wordNum;  
+      }
+    };
+
+    for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
+      this.practiceWritingTextAreaElms[0][cnt].addEventListener('keyup', function() {
+        getWordNum(0, that.practiceWritingTotalCountElm, practiceProofreadingStartBtnElm);
+      });
+    }
+
+    practiceProofreadingStartBtnElm.addEventListener('click', function() {
+      that.setProofreadingPage();
+    });
+
+  };
+
+  Practice.prototype.setProofreadingPage = function(aCurrentPracticeData, aId) {
+
+    if(aCurrentPracticeData!=null) {
+      this.currentPracticeData = aCurrentPracticeData;
+      this.id = aId;
+    }
+
+    const that = this;
+
+    let textAreaValueArray = Array(this.paragraphsNum);
+    for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
+      textAreaValueArray[cnt] = this.practiceWritingTextAreaElms[0][cnt].value;
+    }
+    this.currentPracticeData.sentences = textAreaValueArray;
+    this.savePracticeData('3rd');
+    this.getRemainingTime('proofreading');
+
+    let paragraphsDivElm = this.practiceDivElms[2].querySelector('.js-paragraphs');
+    paragraphsDivElm.innerHTML = this.getParagraphsTextArea(true);
+
+    this.practiceWritingTextAreaElms[1] = this.practiceDivElms[2].querySelectorAll('.js-practiceWritingTextArea');
+    this.practiceWritingWordNumElms[1] = this.practiceDivElms[2].querySelectorAll('.js-practiceWritingWordNum');
+    let practiceWritingReviseBtnElms = this.practiceDivElms[2].querySelectorAll('.js-practiceWritingReviseBtn');
+    let practiceWritingCancelBtnElms = this.practiceDivElms[2].querySelectorAll('.js-practiceWritingCancelBtn');
+
+    this.practiceProofreadingTotalCountElm.textContent = '合計' + this.currentPracticeData.totalnum + '語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
+
+    for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
+      this.practiceWritingTextAreaElms[1][cnt].value = textAreaValueArray[cnt];
+      this.practiceWritingWordNumElms[1][cnt].textContent = this.currentPracticeData.wordnum[cnt];
+      practiceWritingReviseBtnElms[cnt].addEventListener('click', function() {
+        that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
+        if(that.isUnderEditArray[cnt]) {
+          practiceWritingReviseBtnElms.forEach(elm => {
+            elm.disabled = true;
+          });
+          that.practiceWritingTextAreaElms[1][cnt].disabled = false;
+          that.practiceWritingTextAreaElms[1][cnt].focus();
+          this.textContent = '修正完了';
+          practiceWritingCancelBtnElms[cnt].classList.remove('d-none');
+        }
+        else {
+          that.practiceWritingTextAreaElms[1][cnt].disabled = true;
+          this.textContent = '修正する';
+          practiceWritingCancelBtnElms[cnt].classList.add('d-none');
+          practiceWritingReviseBtnElms.forEach(elm => {
+            elm.disabled = false;
+          });
+          that.currentPracticeData.sentences[cnt] = that.practiceWritingTextAreaElms[1][cnt].value;
+          that.currentPracticeData.wordnum[cnt] = that.wordNum[cnt];
+          that.currentPracticeData.totalnum = that.totalNum;
+        }
+      });
+      practiceWritingCancelBtnElms[cnt].addEventListener('click', function() {
+        that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
+        practiceWritingReviseBtnElms.forEach(elm => {
+          elm.disabled = false;
+        });
+        practiceWritingReviseBtnElms[cnt].textContent = '修正する';
+        that.practiceWritingTextAreaElms[1][cnt].disabled = true;
+        this.classList.add('d-none');
+        that.practiceWritingTextAreaElms[1][cnt].value = that.currentPracticeData.sentences[cnt];
+        that.practiceWritingWordNumElms[1][cnt].textContent = that.currentPracticeData.wordnum[cnt];
+        that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentPracticeData.totalnum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
+      });
+      that.practiceWritingTextAreaElms[1][cnt].addEventListener('keyup', function() {
+        getWordNum(1, that.practiceProofreadingTotalCountElm, practiceWritingReviseBtnElms[cnt]);
+      });
+    }
   };
 
   Practice.prototype.setEvent = function() {
@@ -869,136 +1025,10 @@
       that.practiceWritingStartBtnElm.disabled = (this.value) ? false: true;
     });
 
-    const getParagraphsTextArea = (aDisabled) => {
-      let paragraphsTextArea = '';
-      let disabled = (aDisabled) ? ' disabled' : '';
-      for(cnt=0;cnt<that.paragraphsNum;++cnt) {
-        paragraphsTextArea += `<div class="row mb-4">`;
-        if(aDisabled) {
-          paragraphsTextArea += `<div class="position-relative">`;
-        }
-        paragraphsTextArea += `<textarea class="form-control js-practiceWritingTextArea" rows="7"` + disabled + `></textarea>`;
-        if(aDisabled) {
-          paragraphsTextArea += `<div class="position-absolute bottom-0 end-0 mb-2 me-4">
-          <button class="btn btn-secondary d-none js-practiceWritingCancelBtn">キャンセル</button>
-          <button class="btn btn-primary js-practiceWritingReviseBtn">修正する</button>
-          </div></div>`;
-        }
-        paragraphsTextArea += `<div class="text-end"><span class="js-practiceWritingWordNum"></span>語</div></div>`;
-      }
-      return paragraphsTextArea;
-    };
-
     this.practiceWritingTimeElm = document.querySelector('.js-practiceWritingTime');
     this.practiceWritingStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('2nd');
-
-      let practiceWritingNotesElm = document.querySelector('.js-practiceWritingNotes');
-      practiceWritingNotesElm.innerHTML = that.currentPracticeData.notes.replace(/\n/g, '<br>');
-
-      that.getRemainingTime('writing');
-
-      that.paragraphsNum = that.currentPracticeData.paragraphs;
-      let paragraphsDivElm = that.practiceDivElms[1].querySelector('.js-paragraphs');
-      paragraphsDivElm.innerHTML = getParagraphsTextArea(false);
-
-      let practiceProofreadingStartBtnElm = document.querySelector('.js-practiceProofreadingStartBtn');
-      practiceProofreadingStartBtnElm.disabled = true;
-
-      let practiceWritingTextAreaElms = Array(2);
-      let practiceWritingWordNumElms = Array(2);
-      practiceWritingTextAreaElms[0] = that.practiceDivElms[1].querySelectorAll('.js-practiceWritingTextArea');
-      practiceWritingWordNumElms[0] = that.practiceDivElms[1].querySelectorAll('.js-practiceWritingWordNum');
-
-      const getWordNum = (aIndex, aElm, aBtnElm) => {
-        that.totalNum = 0;
-        that.wordNum = Array(that.paragraphsNum);
-        for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
-          that.wordNum[cnt] = 0;
-          let valueArray = practiceWritingTextAreaElms[aIndex][cnt].value.split(' ');
-          let valueArrayTrue = valueArray.map(val=>(val!='')).filter(Boolean);
-          that.wordNum[cnt] = valueArrayTrue.length;
-          practiceWritingWordNumElms[aIndex][cnt].textContent = that.wordNum[cnt];
-          if(valueArrayTrue) {
-            that.totalNum += that.wordNum[cnt];
-          }
-        }
-        aElm.textContent = '合計' + that.totalNum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
-        aBtnElm.disabled = (that.totalNum) ? false : true;
-        if(!aIndex) {
-          that.currentPracticeData.totalnum = that.totalNum;
-          that.currentPracticeData.wordnum = that.wordNum;  
-        }
-      };
-
-      for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
-        practiceWritingTextAreaElms[0][cnt].addEventListener('keyup', function() {
-          getWordNum(0, that.practiceWritingTotalCountElm, practiceProofreadingStartBtnElm);
-        });
-      }
-
-      let textAreaValueArray = Array(that.paragraphsNum);
-      practiceProofreadingStartBtnElm.addEventListener('click', function() {
-        for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
-          textAreaValueArray[cnt] = practiceWritingTextAreaElms[0][cnt].value;
-        }
-        that.currentPracticeData.sentences = textAreaValueArray;
-        that.savePracticeData('3rd');
-        that.getRemainingTime('proofreading');
-
-        let paragraphsDivElm = that.practiceDivElms[2].querySelector('.js-paragraphs');
-        paragraphsDivElm.innerHTML = getParagraphsTextArea(true);
-
-        practiceWritingTextAreaElms[1] = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingTextArea');
-        practiceWritingWordNumElms[1] = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingWordNum');
-        let practiceWritingReviseBtnElms = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingReviseBtn');
-        let practiceWritingCancelBtnElms = that.practiceDivElms[2].querySelectorAll('.js-practiceWritingCancelBtn');
-
-        that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentPracticeData.totalnum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
-
-        for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
-          practiceWritingTextAreaElms[1][cnt].value = textAreaValueArray[cnt];
-          practiceWritingWordNumElms[1][cnt].textContent = that.currentPracticeData.wordnum[cnt];
-          practiceWritingReviseBtnElms[cnt].addEventListener('click', function() {
-            that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
-            if(that.isUnderEditArray[cnt]) {
-              practiceWritingReviseBtnElms.forEach(elm => {
-                elm.disabled = true;
-              });
-              practiceWritingTextAreaElms[1][cnt].disabled = false;
-              practiceWritingTextAreaElms[1][cnt].focus();
-              this.textContent = '修正完了';
-              practiceWritingCancelBtnElms[cnt].classList.remove('d-none');
-            }
-            else {
-              practiceWritingTextAreaElms[1][cnt].disabled = true;
-              this.textContent = '修正する';
-              practiceWritingCancelBtnElms[cnt].classList.add('d-none');
-              practiceWritingReviseBtnElms.forEach(elm => {
-                elm.disabled = false;
-              });
-              that.currentPracticeData.sentences[cnt] = practiceWritingTextAreaElms[1][cnt].value;
-              that.currentPracticeData.wordnum[cnt] = that.wordNum[cnt];
-              that.currentPracticeData.totalnum = that.totalNum;
-            }
-          });
-          practiceWritingCancelBtnElms[cnt].addEventListener('click', function() {
-            that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
-            practiceWritingReviseBtnElms.forEach(elm => {
-              elm.disabled = false;
-            });
-            practiceWritingReviseBtnElms[cnt].textContent = '修正する';
-            practiceWritingTextAreaElms[1][cnt].disabled = true;
-            this.classList.add('d-none');
-            practiceWritingTextAreaElms[1][cnt].value = that.currentPracticeData.sentences[cnt];
-            practiceWritingWordNumElms[1][cnt].textContent = that.currentPracticeData.wordnum[cnt];
-            that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentPracticeData.totalnum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
-          });
-          practiceWritingTextAreaElms[1][cnt].addEventListener('keyup', function() {
-            getWordNum(1, that.practiceProofreadingTotalCountElm, practiceWritingReviseBtnElms[cnt]);
-          });
-        }
-      });
+      that.setWritingPage();
     });
 
     this.practicePageSelectElm[1].addEventListener('change', function() {
@@ -1042,9 +1072,7 @@
     this.deleteThisPracticeResultBtnElm.addEventListener('click', function() {
       that.practiceData.delete(that.id);
       localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...that.practiceData]));
-      // that.goToNextPage(0);//要検討　後で見直し
-      // this.hideOrDisplayMenuToReview(that.practiceData.size);//要検討　後で見直し
-      window.location.reload(false);//要検討　後で見直し
+      window.location.reload(false);
     });
     // 4th page end
   };
@@ -1105,12 +1133,12 @@
           that.practiceData = deleteAndSortPracticeData(id, that.practiceData);
           localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...that.practiceData]));
 
-          let doesComplateDataExist = getDoesComplateDataExist(that.practiceData);
-          if(!doesComplateDataExist) {
-            resumption.classList.add('d-none');
+          let doesNotComplateDataExist = getDoesNotComplateDataExist(that.practiceData);
+          if(doesNotComplateDataExist) {
+            that.displayResumptionList();
           }
           else {
-            that.displayResumptionList();
+            resumption.classList.add('d-none');
           }
         });
       });
@@ -1125,9 +1153,15 @@
             practice.goToNextPage(1, 1);
           }
           else if(resumptionData.status=='2nd') {
+            practice.setPlanningPage(resumptionData, id);
             practice.setWritingPage(resumptionData, id);
             practice.goToNextPage(1, 2);
-            // *****
+          }
+          else if(resumptionData.status=='3rd') {
+            practice.setPlanningPage(resumptionData, id);
+            practice.setWritingPage(resumptionData, id);
+            practice.setProofreadingPage(resumptionData, id);
+            practice.goToNextPage(2);
           }
         });
       });
