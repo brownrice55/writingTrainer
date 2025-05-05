@@ -20,11 +20,11 @@
   let switchPages, settings, practice, review;
 
   const getDoesComplateDataExist = (aData) => {
-    aData.forEach((val, key) => {
+    for(const [key, val] of aData.entries()) {
       if(val.status=='complete') {
         return true;
       }
-    });
+    }
   };
 
   const SwitchPages = function() {
@@ -581,7 +581,6 @@
 
     this.practiceStartBtnElm = document.querySelector('.js-practiceStartBtn');
     this.practiceStartBtnElm.disabled = true;
-    this.id = 1
     this.currentPracticeData = new Map();
 
     this.practiceSelectedSettingsElm = document.querySelector('.js-practiceSelectedSettings');
@@ -627,21 +626,24 @@
     localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
   };
   
-  Practice.prototype.goToNextPage = function(aNextIndex) {
-    this.practiceDivElms.forEach(elm => {
-      elm.classList.add('d-none');
-    });
-    this.practiceDivElms[aNextIndex].classList.remove('d-none');
+  Practice.prototype.goToNextPage = function(aNextIndex, aPractice2) {
+    if(aNextIndex!=null) {
+      this.practiceDivElms.forEach(elm => {
+        elm.classList.add('d-none');
+      });
+      this.practiceDivElms[aNextIndex].classList.remove('d-none');  
+    }
+
+    if(aPractice2!=null) {
+      this.practice2DivElms = document.querySelectorAll('.js-practice2');
+      let index = (aPractice2==1) ? [0,1] : [1, 0];
+      this.practice2DivElms[index[0]].classList.remove('d-none');
+      this.practice2DivElms[index[1]].classList.add('d-none');
+    }
   };
 
   Practice.prototype.savePracticeData = function(aStatus) {
     const that = this;
-    const goToNextPage = (aNextIndex) => {
-      this.practiceDivElms.forEach(elm => {
-        elm.classList.add('d-none');
-      });
-      this.practiceDivElms[aNextIndex].classList.remove('d-none');
-    };
 
     const getDisplayDateAndTime = function(aStartTime, aEndTime) {
       const getTime = (aTime) => {
@@ -691,7 +693,7 @@
       this.currentPracticeData.writingtime = this.selectedTemplateData.writingtime;
       this.currentPracticeData.proofreadingtime = this.selectedTemplateData.proofreadingtime;
       this.setAndSaveData(this.id, this.currentPracticeData);
-      that.goToNextPage(1);
+      this.goToNextPage(1, 1);
     }
     else if(aStatus=='2nd') {
       clearTimeout(this.timerID);
@@ -702,6 +704,7 @@
       this.currentPracticeData.isplus1 = this.isPlus;
       this.currentPracticeData.status = '2nd';
       this.setAndSaveData(this.id, this.currentPracticeData);
+      this.goToNextPage(null, 2);
     }
     else if(aStatus=='modal') {
       this.currentPracticeData.templatename = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
@@ -817,13 +820,21 @@
     getRemainingTime(aStatus);
   };
 
-  Practice.prototype.setSecondPage = function() {
-    this.currentPracticeData = new Map();
-    this.currentPracticeData = this.practiceData.get(this.id);
+  Practice.prototype.setPlanningPage = function(aCurrentPracticeData, aId) {
+    if(aCurrentPracticeData) {
+      this.currentPracticeData = aCurrentPracticeData;
+      this.id = aId;
+    }
+    else {
+      this.currentPracticeData = this.practiceData.get(this.id);
+    }
     this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentPracticeData.templatename + '<br>トピック：' + this.currentPracticeData.topicname;
     this.getRemainingTime('planning');
 
     this.practiceWritingTotalCountElm.textContent = '合計0語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
+  };
+
+  Practice.prototype.setWritingPage = function(aCurrentPracticeData, aId) {
   };
 
   Practice.prototype.setEvent = function() {
@@ -846,13 +857,10 @@
       that.practiceStartBtnElm.disabled = (this.value) ? false : true;
     });
 
-    this.practice2DivElms = document.querySelectorAll('.js-practice2');
     this.practiceStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('1st');
-      that.setSecondPage();
+      that.setPlanningPage();
       that.setSelectArea(1);
-      that.practice2DivElms[0].classList.remove('d-none');
-      that.practice2DivElms[1].classList.add('d-none');
     });
     // 1st page end
 
@@ -884,8 +892,6 @@
     this.practiceWritingTimeElm = document.querySelector('.js-practiceWritingTime');
     this.practiceWritingStartBtnElm.addEventListener('click', function() {
       that.savePracticeData('2nd');
-      that.practice2DivElms[0].classList.add('d-none');
-      that.practice2DivElms[1].classList.remove('d-none');
 
       let practiceWritingNotesElm = document.querySelector('.js-practiceWritingNotes');
       practiceWritingNotesElm.innerHTML = that.currentPracticeData.notes.replace(/\n/g, '<br>');
@@ -933,7 +939,6 @@
 
       let textAreaValueArray = Array(that.paragraphsNum);
       practiceProofreadingStartBtnElm.addEventListener('click', function() {
-
         for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
           textAreaValueArray[cnt] = practiceWritingTextAreaElms[0][cnt].value;
         }
@@ -1010,7 +1015,7 @@
 
     this.practiceChangeBtnElm.addEventListener('click', function() {
       that.savePracticeData('modal');
-      that.setSecondPage();
+      that.setPlanningPage();
       this.disabled = true;
     });
 
@@ -1081,7 +1086,7 @@
         result += '<li>実施日時：' + val.displayDate + '</li></ul>';
         result += `<div class="text-end">
                     <button class="btn btn-primary mx-2 js-deleteResumptionListBtn" data-index="` + key + `">削除する</button>
-                    <button class="btn btn-primary mx-2 js-resumeBtn">再開する</button>
+                    <button class="btn btn-primary mx-2 js-resumeBtn" data-index="` + key + `">再開する</button>
                   </div>
                   </div>`;
         resumption.classList.remove('d-none');
@@ -1104,8 +1109,29 @@
           if(!doesComplateDataExist) {
             resumption.classList.add('d-none');
           }
+          else {
+            that.displayResumptionList();
+          }
         });
       });
+
+      let resumeBtnElms = document.querySelectorAll('.js-resumeBtn');
+      resumeBtnElms.forEach(elm => {
+        elm.addEventListener('click', function() {
+          id = parseInt(this.dataset.index);
+          let resumptionData = that.practiceData.get(id);
+          if(resumptionData.status=='1st') {
+            practice.setPlanningPage(resumptionData, id);
+            practice.goToNextPage(1, 1);
+          }
+          else if(resumptionData.status=='2nd') {
+            practice.setWritingPage(resumptionData, id);
+            practice.goToNextPage(1, 2);
+            // *****
+          }
+        });
+      });
+
     }
     else {
       resumptionListElm.parentNode.classList.add('d-none');
@@ -1119,8 +1145,9 @@
   const deleteAndSortPracticeData = (aId, aData) => {
     aData.delete(aId);
     let tempPracticeData = new Map();
+    let cnt = 0;
     aData.forEach((val, key) => {
-      tempPracticeData.set(key, val);
+      tempPracticeData.set(++cnt, val);
     });
     localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...aData]));
     return tempPracticeData;
