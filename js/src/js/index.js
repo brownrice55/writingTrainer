@@ -653,6 +653,20 @@
     }
   };
 
+  Practice.prototype.setAndChangeTemplate = function(aIndex) {
+    let selectedOption = this.practicePageSelectElm[aIndex].options[this.practicePageSelectElm[aIndex].selectedIndex];
+    let selectedOptionDataKey = selectedOption.dataset.key;
+    this.selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
+
+    this.currentPracticeData.paragraphs = this.selectedTemplateData.paragraphs;
+    this.currentPracticeData.min = this.selectedTemplateData.min;
+    this.currentPracticeData.max = this.selectedTemplateData.max;
+    this.currentPracticeData.total = this.selectedTemplateData.total;
+    this.currentPracticeData.planningtime = this.selectedTemplateData.planningtime;
+    this.currentPracticeData.writingtime = this.selectedTemplateData.writingtime;
+    this.currentPracticeData.proofreadingtime = this.selectedTemplateData.proofreadingtime;  
+  };
+
   Practice.prototype.savePracticeData = function(aStatus) {
     const that = this;
 
@@ -682,9 +696,7 @@
     };
 
     if(aStatus=='1st') {
-      let selectedOption = this.practicePageSelectElm[0].options[this.practicePageSelectElm[0].selectedIndex];
-      let selectedOptionDataKey = selectedOption.dataset.key;
-      this.selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
+      this.setAndChangeTemplate(0);
 
       this.id = this.practiceData.size + 1;
       this.startTime = new Date();
@@ -696,13 +708,6 @@
       this.currentPracticeData.status = '1st';
       this.currentPracticeData.displayDate = getDisplayDateAndTime(this.startTime, null);
 
-      this.currentPracticeData.paragraphs = this.selectedTemplateData.paragraphs;
-      this.currentPracticeData.min = this.selectedTemplateData.min;
-      this.currentPracticeData.max = this.selectedTemplateData.max;
-      this.currentPracticeData.total = this.selectedTemplateData.total;
-      this.currentPracticeData.planningtime = this.selectedTemplateData.planningtime;
-      this.currentPracticeData.writingtime = this.selectedTemplateData.writingtime;
-      this.currentPracticeData.proofreadingtime = this.selectedTemplateData.proofreadingtime;
       this.setAndSaveData(this.id, this.currentPracticeData);
       this.goToNextPage(1, 1);
     }
@@ -720,7 +725,13 @@
     else if(aStatus=='modal') {
       this.currentPracticeData.templatename = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
       this.currentPracticeData.topicname = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
+
+      this.setAndChangeTemplate(1);
+      
       this.setAndSaveData(this.id, this.currentPracticeData);
+      if(this.currentPracticeData.status=='2nd') {
+        this.setWritingPage();
+      }
     }
     else if(aStatus=='3rd') {
       clearTimeout(this.timerID);
@@ -1073,8 +1084,8 @@
 
     this.deleteThisPracticeResultBtnElm.addEventListener('click', function() {
       that.practiceData.delete(that.id);
-      deleteAndSortPracticeData(that.id, that.practiceData);
-      window.location.reload(false);
+      that.practiceData = deleteAndSortPracticeData(that.id, that.practiceData);
+      window.location.reload(false);//要検討
     });
     // 4th page end
   };
@@ -1151,17 +1162,20 @@
           let resumptionData = that.practiceData.get(id);
           if(resumptionData.status=='1st') {
             practice.setPlanningPage(resumptionData, id);
+            practice.setSelectArea(1);
             practice.goToNextPage(1, 1);
           }
           else if(resumptionData.status=='2nd') {
             practice.setPlanningPage(resumptionData, id);
             practice.setWritingPage(resumptionData, id);
+            practice.setSelectArea(1);
             practice.goToNextPage(1, 2);
           }
           else if(resumptionData.status=='3rd') {
             practice.setPlanningPage(resumptionData, id);
             practice.setWritingPage(resumptionData, id);
             practice.setProofreadingPage(resumptionData, id);
+            practice.setSelectArea(1);
             practice.goToNextPage(2);
           }
         });
