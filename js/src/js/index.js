@@ -865,8 +865,28 @@
     return paragraphsTextArea;
   };
 
-  Practice.prototype.setWritingPage = function(aCurrentPracticeData, aId) {
+  Practice.prototype.getWordNum = function(aIndex, aElm, aBtnElm) {
+    this.totalNum = 0;
+    this.wordNum = Array(this.paragraphsNum);
+    for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
+      this.wordNum[cnt] = 0;
+      let valueArray = this.practiceWritingTextAreaElms[aIndex][cnt].value.split(' ');
+      let valueArrayTrue = valueArray.map(val=>(val!='')).filter(Boolean);
+      this.wordNum[cnt] = valueArrayTrue.length;
+      this.practiceWritingWordNumElms[aIndex][cnt].textContent = this.wordNum[cnt];
+      if(valueArrayTrue) {
+        this.totalNum += this.wordNum[cnt];
+      }
+    }
+    aElm.textContent = '合計' + this.totalNum + '語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
+    aBtnElm.disabled = (this.totalNum) ? false : true;
+    if(!aIndex) {
+      this.currentPracticeData.totalnum = this.totalNum;
+      this.currentPracticeData.wordnum = this.wordNum;  
+    }
+  };
 
+  Practice.prototype.setWritingPage = function(aCurrentPracticeData, aId) {
     if(aCurrentPracticeData!=null) {
       this.currentPracticeData = aCurrentPracticeData;
       this.id = aId;
@@ -889,30 +909,9 @@
     this.practiceWritingTextAreaElms[0] = this.practiceDivElms[1].querySelectorAll('.js-practiceWritingTextArea');
     this.practiceWritingWordNumElms[0] = this.practiceDivElms[1].querySelectorAll('.js-practiceWritingWordNum');
 
-    const getWordNum = (aIndex, aElm, aBtnElm) => {
-      this.totalNum = 0;
-      this.wordNum = Array(this.paragraphsNum);
-      for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
-        this.wordNum[cnt] = 0;
-        let valueArray = this.practiceWritingTextAreaElms[aIndex][cnt].value.split(' ');
-        let valueArrayTrue = valueArray.map(val=>(val!='')).filter(Boolean);
-        this.wordNum[cnt] = valueArrayTrue.length;
-        this.practiceWritingWordNumElms[aIndex][cnt].textContent = this.wordNum[cnt];
-        if(valueArrayTrue) {
-          this.totalNum += this.wordNum[cnt];
-        }
-      }
-      aElm.textContent = '合計' + this.totalNum + '語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
-      aBtnElm.disabled = (this.totalNum) ? false : true;
-      if(!aIndex) {
-        this.currentPracticeData.totalnum = this.totalNum;
-        this.currentPracticeData.wordnum = this.wordNum;  
-      }
-    };
-
     for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
       this.practiceWritingTextAreaElms[0][cnt].addEventListener('keyup', function() {
-        getWordNum(0, that.practiceWritingTotalCountElm, practiceProofreadingStartBtnElm);
+        that.getWordNum(0, that.practiceWritingTotalCountElm, practiceProofreadingStartBtnElm);
       });
     }
 
@@ -928,14 +927,16 @@
       this.currentPracticeData = aCurrentPracticeData;
       this.id = aId;
     }
+    else {
+      let textAreaValueArray = Array(this.paragraphsNum);
+      for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
+        textAreaValueArray[cnt] = this.practiceWritingTextAreaElms[0][cnt].value;
+      }
+      this.currentPracticeData.sentences = textAreaValueArray;
+    }
 
     const that = this;
 
-    let textAreaValueArray = Array(this.paragraphsNum);
-    for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
-      textAreaValueArray[cnt] = this.practiceWritingTextAreaElms[0][cnt].value;
-    }
-    this.currentPracticeData.sentences = textAreaValueArray;
     this.savePracticeData('3rd');
     this.getRemainingTime('proofreading');
 
@@ -950,7 +951,7 @@
     this.practiceProofreadingTotalCountElm.textContent = '合計' + this.currentPracticeData.totalnum + '語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
 
     for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
-      this.practiceWritingTextAreaElms[1][cnt].value = textAreaValueArray[cnt];
+      this.practiceWritingTextAreaElms[1][cnt].value = this.currentPracticeData.sentences[cnt];
       this.practiceWritingWordNumElms[1][cnt].textContent = this.currentPracticeData.wordnum[cnt];
       practiceWritingReviseBtnElms[cnt].addEventListener('click', function() {
         that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
@@ -973,6 +974,7 @@
           that.currentPracticeData.sentences[cnt] = that.practiceWritingTextAreaElms[1][cnt].value;
           that.currentPracticeData.wordnum[cnt] = that.wordNum[cnt];
           that.currentPracticeData.totalnum = that.totalNum;
+          that.setAndSaveData(that.id, that.currentPracticeData);
         }
       });
       practiceWritingCancelBtnElms[cnt].addEventListener('click', function() {
@@ -987,8 +989,8 @@
         that.practiceWritingWordNumElms[1][cnt].textContent = that.currentPracticeData.wordnum[cnt];
         that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentPracticeData.totalnum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
       });
-      that.practiceWritingTextAreaElms[1][cnt].addEventListener('keyup', function() {
-        getWordNum(1, that.practiceProofreadingTotalCountElm, practiceWritingReviseBtnElms[cnt]);
+      this.practiceWritingTextAreaElms[1][cnt].addEventListener('keyup', function() {
+        that.getWordNum(1, that.practiceProofreadingTotalCountElm, practiceWritingReviseBtnElms[cnt]);
       });
     }
   };
@@ -1071,7 +1073,7 @@
 
     this.deleteThisPracticeResultBtnElm.addEventListener('click', function() {
       that.practiceData.delete(that.id);
-      localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...that.practiceData]));
+      deleteAndSortPracticeData(that.id, that.practiceData);
       window.location.reload(false);
     });
     // 4th page end
@@ -1131,7 +1133,6 @@
         elm.addEventListener('click', function() {
           id = parseInt(this.dataset.index);
           that.practiceData = deleteAndSortPracticeData(id, that.practiceData);
-          localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...that.practiceData]));
 
           let doesNotComplateDataExist = getDoesNotComplateDataExist(that.practiceData);
           if(doesNotComplateDataExist) {
@@ -1178,13 +1179,13 @@
 
   const deleteAndSortPracticeData = (aId, aData) => {
     aData.delete(aId);
-    let tempPracticeData = new Map();
+    let newPracticeData = new Map();
     let cnt = 0;
     aData.forEach((val, key) => {
-      tempPracticeData.set(++cnt, val);
+      newPracticeData.set(++cnt, val);
     });
-    localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...aData]));
-    return tempPracticeData;
+    localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...newPracticeData]));
+    return newPracticeData;
   };
 
   const Review = function() {
