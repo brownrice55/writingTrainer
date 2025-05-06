@@ -1353,7 +1353,6 @@
 
     practice = new Practice();
     practice.run();
-    settings.run();
 
     review = new Review();
     review.run();
