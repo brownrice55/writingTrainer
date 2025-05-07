@@ -57,7 +57,14 @@
 
   SwitchPages.prototype.setPage = function(aIndex) {
     if(aIndex==null) {
-      aIndex = (!templateDataGlobal.size) ? 2 : 0;
+      if(!templateDataGlobal.size) {
+        aIndex = 2;
+        this.globalMenuLiElms[0].classList.add('d-none');
+      }
+      else {
+        aIndex = 0;
+        this.globalMenuLiElms[0].classList.remove('d-none');
+      }
     }
     this.sectionElms[aIndex].classList.remove('d-none');
   };
@@ -449,6 +456,30 @@
 
       switchPages.resetPages();
       switchPages.setPage();
+
+      const judgeSaveBtnDisabled = () => {
+        console.log(this.inputTopicElms);
+        this.inputTopicElms.forEach(elm => {
+          elm.addEventListener('keyup', function() {
+            that.saveTopicBtnElm.disabled = checkIsBtnDisabled();
+          });
+        });
+      };
+  
+      judgeSaveBtnDisabled();
+      this.addTopicBtnElm.addEventListener('click', function() {
+        let inputElm = document.createElement('input');
+        inputElm.type = 'text';
+        inputElm.className = 'form-control mx-2 mb-3';
+        inputElm.value = '';
+        that.topicInputAreaElm.appendChild(inputElm);
+        that.inputTopicElms = that.topicInputAreaElm.querySelectorAll('input');
+        judgeSaveBtnDisabled();
+      });
+  
+      this.saveTopicBtnElm.addEventListener('click', function() {
+        that.saveData('topic');
+      });
     }
     else {
       if(!this.templateSettingsFormInputElms[0].value) {
@@ -468,6 +499,8 @@
       this.backToListElm.classList.add('d-none');
       this.navTabBtnElms[0].className = 'nav-link active';
       this.navTabBtnElms[1].className = 'nav-link';
+
+      switchPages.setPage();
     }
   };
 
@@ -508,28 +541,6 @@
       return (isDuplicateArray.length || JSON.stringify(this.inputArray)==JSON.stringify(this.topicData)) ? true : false;
     };
 
-    const judgeSaveBtnDisabled = () => {
-      this.inputTopicElms.forEach(elm => {
-        elm.addEventListener('keyup', function() {
-          that.saveTopicBtnElm.disabled = checkIsBtnDisabled();
-        });
-      });
-    };
-
-    judgeSaveBtnDisabled();
-    this.addTopicBtnElm.addEventListener('click', function() {
-      let inputElm = document.createElement('input');
-      inputElm.type = 'text';
-      inputElm.className = 'form-control mx-2 mb-3';
-      inputElm.value = '';
-      that.topicInputAreaElm.appendChild(inputElm);
-      that.inputTopicElms = that.topicInputAreaElm.querySelectorAll('input');
-      judgeSaveBtnDisabled();
-    });
-
-    this.saveTopicBtnElm.addEventListener('click', function() {
-      that.saveData('topic');
-    });
   };
 
   Settings.prototype.setEvent = function() {
