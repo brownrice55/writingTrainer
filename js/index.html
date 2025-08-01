@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="./dest/css/index.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <title>writing Trainer</title>
+</head>
+<body>
+  <header class="header js-header mb-4">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+      <div class="container-fluid">
+        <div class="navbar-brand">Writing Trainer</div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse js-globalMenu" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item py-2 active">練習</li>
+            <li class="nav-item py-2">過去の練習一覧</li>
+            <li class="nav-item py-2">テンプレート設定</li>
+            <li class="nav-item py-2">トピック設定</li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <main class="js-main container">
+    <section class="d-none">
+      <div class="js-practice">
+        <p>設定とトピックを決めて、「スタート」を押してください。</p>
+        <div class="row p-1">
+          <label class="form-label">テンプレート</label>
+          <select class="form-select mx-2 mb-3 js-formInput"></select>
+        </div>
+        <div class="row p-1">
+          <label for="inputTopic" class="form-label">トピック</label>
+          <input class="form-control mx-2 mb-3" list="datalistInputTopic" id="inputTopic" placeholder="トピックを入力または選択してください">
+          <datalist id="datalistInputTopic" class="js-formInput"></datalist>
+        </div>
+        <div class="row m-2">
+          <button class="btn btn-primary p-3 w-75 mx-auto js-practiceStartBtn">スタート</button>
+        </div>
+
+        <div class="mt-5 mb-2 js-resumption">
+          <p>下記から、途中で止めた練習を再開できます。</p>
+          <div class="js-resumptionList"></div>
+        </div>
+      </div>
+      <div class="js-practice d-none">
+        <div class="row m-2 p-3 bg-secondary-subtle js-practice2SelectArea">
+          <div class="col-8 js-practiceSelectedSettings"></div>
+          <div class="col-4 text-end">
+            <button class="btn btn-secondary" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal">
+              変更
+            </button>
+            <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-body text-start">
+                    <div class="row p-1">
+                      <label class="form-label">テンプレート</label>
+                      <select class="form-select mx-2 mb-3 js-formInput"></select>
+                    </div>
+                    <div class="row p-1">
+                      <label for="inputTopic2" class="form-label">トピック</label>
+                      <input class="form-control mx-2 mb-3" list="datalistInputTopic" id="inputTopic2" placeholder="トピックを入力または選択してください">
+                      <datalist id="datalistInputTopic" class="js-formInput"></datalist>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary js-practiceCloseBtn" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary js-practiceChangeBtn" data-bs-dismiss="modal">変更する</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="my-5 mx-3 js-practice2">
+          <div class="row mt-3">
+            <p>まず、方向性・構成を決めます。<br>
+            <span class="js-practicePlanningTime"></span></p>
+          </div>
+          <div class="row mb-4">
+            <label for="notes" class="form-label">メモ</label>
+            <textarea class="form-control js-practiceNotesTextArea" id="notes" rows="5"></textarea>
+          </div>
+          <div class="row m-2">
+            <button class="btn btn-primary p-3 w-75 mx-auto js-practiceWritingStartBtn">書き始める</button>
+          </div>
+        </div>
+        <div class="my-5 mx-3 js-practice2">
+          <div class="row mt-3 js-practiceWritingNotes"></div>
+          <div class="row mt-3">
+            <p class="js-practiceWritingTime"></p>
+          </div>
+          <div class="js-paragraphs"></div>
+          <div class="mb-4 text-end js-practiceWritingTotalCount"></div>
+          <div class="row m-2">
+            <button class="btn btn-primary p-3 w-75 mx-auto js-practiceProofreadingStartBtn">校正をする</button>
+          </div>
+        </div>
+      </div>
+      <div class="js-practice d-none">
+        <div class="row mt-3">
+          <p class="js-practiceProofreadingTime"></p>
+        </div>
+        <div class="js-paragraphs"></div>
+        <div class="mb-4 text-end js-practiceProofreadingTotalCount"></div>
+        <div class="row m-2">
+          <button class="btn btn-primary p-3 w-75 mx-auto js-practiceCompleteBtn">終了する</button>
+        </div>
+      </div>
+      <div class="js-practice d-none">
+        <p class="p-3">
+          お疲れ様でした。今回の練習を保存しました。<br>今回の練習を保存しない場合は、一番下の「保存しない」ボタンを押してください。
+        </p>
+        <div class="row m-2 p-3 bg-secondary-subtle js-practiceResult"></div>
+        <div class="row my-5 mx-3 js-practiceResult"></div>
+        <div class="row m-2 js-practiceResult"></div>
+        <div class="text-end mb-4 mx-4 js-practiceResult"></div>
+        <div class="row text-center">
+          <div class="col">
+            <button class="btn btn-primary p-3 w-100 mx-auto js-practiceResultBtn">過去の練習一覧へ</button>
+          </div>
+          <div class="col">
+            <button class="btn btn-primary p-3 w-100 mx-auto js-practiceResultBtn">今回の練習を保存しない</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="js-list d-none">
+      <div class="js-reviewCont">
+        <div class="row">
+          <h2 class="lead col">過去の練習内容の一覧</h2>
+          <div class="text-end col">
+            <button class="btn btn-secondary p-1 px-2 mx-2" data-bs-toggle="collapse" data-bs-target="#filter" aria-expand="false" aria-controls="filter">絞り込み</button>
+          </div>
+        </div>
+        <div class="bg-secondary text-white p-4 mx-2 mt-2 rounded collapse" id="filter">
+          <div class="row p-1">
+            <div class="col-4">
+              設定名
+            </div>
+            <div class="col-8">
+              <select class="form-select js-reviewSearchSelect"></select>
+            </div>
+          </div>
+          <div class="row p-1">
+            <div class="col-4">
+              トピック
+            </div>
+            <div class="col-8">
+              <select class="form-select js-reviewSearchSelect"></select>
+            </div>
+          </div>
+        </div>
+        <div class="js-reviewList"></div>
+      </div>
+      <div class="js-reviewCont d-none">
+        <div class="text-start mb-4 js-backToList">
+          <button class="btn btn-secondary backToList">一覧に戻る</button>
+        </div>
+        <div class="row m-2 p-3 bg-secondary-subtle js-reviewResult"></div>
+        <div class="row my-5 mx-3 js-reviewResult"></div>
+        <div class="text-end js-playbackBtn">
+          <button class="btn btn-primary py-1 px-2 mx-2">再生する</button>
+        </div>
+        <div class="row m-2 js-reviewResult"></div>
+        <div class="text-end mb-4 mx-4 js-reviewResult"></div>
+        <div class="row text-center">
+          <div class="col js-backToList">
+            <button class="btn btn-primary p-3 w-100 mx-auto">一覧に戻る</button>
+          </div>
+          <div class="col">
+            <button class="btn btn-primary p-3 w-100 mx-auto js-goToPracticeBtn">練習をする</button>
+          </div>
+        </div>
+        <div class="row text-center">
+          <button class="btn btn-primary p-3 w-50 mt-4 mx-auto js-deleteThisPracticeBtn">この練習データを削除する</button>
+        </div>
+      </div>
+    </section>
+    <section class="js-templateSettings d-none">
+      <h1 class="lead">テンプレート設定</h1>
+      <nav class="my-4">
+        <div class="nav nav-tabs js-navTab" role="tablist">
+          <button class="nav-link active" id="nav-list-tab" data-bs-toggle="tab" data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-list" aria-selected="true">テンプレート一覧</button>
+          <button class="nav-link" id="nav-add-tab" data-bs-toggle="tab" data-bs-target="#nav-add" type="button" role="tab" aria-controls="nav-add" aria-selected="false">テンプレート追加</button>
+        </div>
+      </nav>
+      <div class="tab-content js-navTabContent">
+        <div class="tab-pane fade show active" id="nav-list" role="tabpanel" aria-labelledby="nav-list-tab">
+          <ul class="js-templateListUl templateListUl"></ul>
+        </div>
+        <div class="tab-pane fade" id="nav-add" role="tabpanel" aria-labelledby="nav-add-tab">
+          <div class="text-start mb-4 js-backToList">
+            <button class="btn btn-secondary backToList">一覧に戻る</button>
+          </div>
+          <div class="row p-1">
+            <label class="form-label">設定名<span class="js-formAlert text-danger mx-3"></span></label>
+            <input type="text" class="form-control mx-2 mb-3 js-formInput">
+          </div>
+          <h2 class="lead">書式設定</h2>
+          <div class="row p-1">
+            <label class="form-label">段落数</label>
+            <select class="form-select mx-2 mb-3 js-formInput"></select>
+          </div>
+          <div class="row p-1">
+            <label class="form-label">文字数<span class="js-formAlert text-danger mx-3"></span></label>
+            <div class="row mb-3 mx-auto text-center">
+              <div class="col"><input type="number" class="form-control js-formInput" value="200"></div>
+              <div class="col">〜</div>
+              <div class="col"><input type="number" class="form-control js-formInput" value="240"></div>
+            </div>
+          </div>
+          <h2 class="lead">時間制限・配分</h2>
+          <div class="row p-1">
+            <label class="form-label">合計<span class="js-formAlert text-danger mx-3"></span></label>
+            <select class="form-select mx-2 mb-3 js-formInput"></select>
+          </div>
+          <div class="row py-1 px-3 d-none">
+            <label class="form-label">方向性・構成を決める時間</label>
+            <select class="form-select mx-2 mb-3 js-formInput"></select>
+          </div>
+          <div class="row py-1 px-3 d-none">
+            <label class="form-label">文章を書く時間</label>
+            <select class="form-select mx-2 mb-3 js-formInput"></select>
+          </div>
+          <div class="row py-1 px-3 d-none">
+            <label class="form-label">校正する時間</label>
+            <select class="form-select mx-2 mb-3 js-formInput"></select>
+          </div>
+          <div class="row m-2">
+            <button class="btn btn-primary p-3 w-75 mx-auto js-saveSettingsBtn">保存する</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="js-topicSettings d-none">
+      <h2 class="lead">トピック設定</h2>
+      <p class="js-formAlert text-danger my-3"></p>
+      <div class="row p-1 js-topicInputArea">
+        <input type="text" class="form-control mx-2 mb-3">
+      </div>
+      <div class="text-end">
+        <button class="btn btn-primary py-1 px-2 mx-2 mb-4 js-addTopicBtn">トピックを追加する</button>
+      </div>
+      <div class="row m-2">
+        <button class="btn btn-primary p-3 w-75 mx-auto js-saveSettingsBtn">保存する</button>
+      </div>
+    </section>
+  </main>
+  <script src="./dest/js/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+</body>
+</html>

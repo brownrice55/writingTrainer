@@ -1,0 +1,1394 @@
+(function() {
+  'use strict';
+
+  let templateDataGlobal = new Map();
+  let templateData = localStorage.getItem('writingTrainerTemplateData');
+  if(templateData!=='undefined') {
+    const templateDataJson = JSON.parse(templateData);
+    templateDataGlobal = new Map(templateDataJson);
+  }
+
+  let topicDataGlobal = JSON.parse(localStorage.getItem('writingTrainerTopicData')) || [];
+
+  let practiceDataGlobal = new Map();
+  let practiceData = localStorage.getItem('writingTrainerPracticeData');
+  if(practiceData!=='undefined') {
+    const practiceDataJson = JSON.parse(practiceData);
+    practiceDataGlobal = new Map(practiceDataJson);
+  }
+
+  let switchPages, settings, practice, review;
+
+  const getDoesComplateDataExist = (aData) => {
+    for(const [key, val] of aData.entries()) {
+      if(val.status=='complete') {
+        return true;
+      }
+    }
+  };
+
+  const getDoesNotComplateDataExist = (aData) => {
+    for(const [key, val] of aData.entries()) {
+      if(val.status!='complete') {
+        return true;
+      }
+    }
+  };
+
+  const SwitchPages = function() {
+    this.initialize.apply(this, arguments);
+  };
+
+  SwitchPages.prototype.initialize = function() {
+    this.practiceData = practiceDataGlobal;
+
+    this.globalMenuElm = document.querySelector('.js-globalMenu');
+    this.globalMenuLiElms = this.globalMenuElm.querySelectorAll('li');
+    this.sectionElms = document.querySelectorAll('section');
+
+    this.headerElm = document.querySelector('.js-header');
+  };
+
+  SwitchPages.prototype.resetPages = function() {
+    for(let cnt=0,len=this.sectionElms.length;cnt<len;++cnt) {
+      this.sectionElms[cnt].classList.add('d-none');
+    }
+  };
+
+  SwitchPages.prototype.setPage = function(aIndex) {
+    if(aIndex==null) {
+      if(!templateDataGlobal.size) {
+        aIndex = 2;
+        this.globalMenuLiElms[0].classList.add('d-none');
+      }
+      else {
+        aIndex = 0;
+        this.globalMenuLiElms[0].classList.remove('d-none');
+      }
+    }
+    this.sectionElms[aIndex].classList.remove('d-none');
+  };
+
+  SwitchPages.prototype.hideOrDisplayMenuToReview = function(aDoesDataExist) {
+    if(aDoesDataExist) {
+      this.globalMenuLiElms[1].classList.remove('d-none');
+    }
+    else {
+      this.globalMenuLiElms[1].classList.add('d-none');
+    }
+  };
+
+  SwitchPages.prototype.setEvent = function() {
+    this.setPage();
+
+    let doesComplateDataExist = getDoesComplateDataExist(this.practiceData);
+    this.hideOrDisplayMenuToReview(doesComplateDataExist);
+
+    const that = this;
+    for(let cnt=0,len=this.globalMenuLiElms.length;cnt<len;++cnt) {
+      this.globalMenuLiElms[cnt].addEventListener('click', function() {
+        that.resetPages();
+        that.sectionElms[cnt].classList.remove('d-none');
+        that.globalMenuElm.classList.remove('show');
+        if(cnt==0) {
+          practice.displayResumptionList();
+          practice.setSelectArea(0);
+          practice.resetPractice();
+        }
+      });  
+    }
+
+    this.closeGlobalMenu();
+  };
+
+  SwitchPages.prototype.closeGlobalMenu = function() {
+    const that = this;
+    const globalNavBtnElm = document.querySelector('.js-globalNavBtn');
+    const bsCollapse = new bootstrap.Collapse(this.globalMenuElm, { toggle: false });
+
+    const mediaQueryList = window.matchMedia('(max-width: 992px)');
+    let isOpen = false;
+    const listener = (event) => {
+      if(event.matches) {
+        document.addEventListener('click', function(event) {
+        isOpen = that.globalMenuElm.classList.contains('show');
+          if(isOpen && !that.headerElm.contains(event.target)) {
+            bsCollapse.hide();
+          }
+        });
+      }
+    };
+
+    mediaQueryList.addEventListener('change', listener);
+    listener(mediaQueryList);
+  };
+
+  SwitchPages.prototype.run = function() {
+    this.setEvent();
+  };
+
+
+  const Settings = function() {
+    this.initialize.apply(this, arguments);
+  };
+
+  Settings.prototype.initialize = function() {
+    this.templateData = templateDataGlobal;
+    this.templateSettingsElm = document.querySelector('.js-templateSettings');
+    this.templateSettingsFormInputElms = this.templateSettingsElm.querySelectorAll('.js-formInput');
+    this.templateListUlElm = document.querySelector('.js-templateListUl');
+
+    this.isEdit = false;
+    this.editTemplateId = 0;
+
+    this.backToListBtnElm = document.querySelector('.js-templateSettings .js-backToList button');
+    this.backToListElm = this.backToListBtnElm.parentNode;
+
+    this.navTabElm = document.querySelector('.js-navTab');
+    this.navTabBtnElms = this.navTabElm.querySelectorAll('button');
+    this.navTabContentDivElms = document.querySelectorAll('.js-navTabContent > div');
+
+    this.topicData = topicDataGlobal;
+    this.topicSettingsElm = document.querySelector('.js-topicSettings');
+    this.topicSettingsFormInputElms = this.topicSettingsElm.querySelectorAll('.js-formInput');
+    this.topicInputAreaElm = document.querySelector('.js-topicInputArea');
+    this.addTopicBtnElm = document.querySelector('.js-addTopicBtn');
+
+    this.saveBtnElms = document.querySelectorAll('.js-saveSettingsBtn');
+    this.saveTemplateBtnElm = this.saveBtnElms[0];
+    this.saveTopicBtnElm = this.saveBtnElms[1];
+
+    this.formAlertElms = document.querySelectorAll('.js-formAlert');
+
+    this.is0OK = false;
+    this.is23OK = true;
+    this.is4OK = false;
+  };
+
+  Settings.prototype.setNavState = function(aState) {
+    if(aState=='initial') {
+      this.navTabElm.classList.add('d-none');
+      this.navTabContentDivElms[0].className = 'tab-pane fade';
+      this.navTabContentDivElms[1].className = 'tab-pane fade show active';
+    }
+    else {
+      this.navTabElm.classList.remove('d-none');
+      this.navTabContentDivElms[0].className = 'tab-pane fade show active'; 
+      this.navTabContentDivElms[1].className = 'tab-pane fade';
+    }
+  };
+
+  Settings.prototype.initialState = function() {
+    this.setNavState('initial');
+    this.backToListElm.classList.add('d-none');
+    this.addNewTemplate();
+  };
+
+  Settings.prototype.getOptionData = function(aMin, aMax, aUnit) {
+    let option = '';
+    for(let cnt=0;cnt<=aMax;++cnt) {
+      option += '<option value="' + (cnt+aMin) + '">' + (cnt+aMin) + aUnit + '</option>';
+    }
+    return option;
+  };
+
+  Settings.prototype.displayTemplateListData = function() {
+    this.setNavState('notInitial');
+    let listTemplateData = '';
+    this.templateData.forEach((value, key) => {
+      listTemplateData += '<li>' + value.templatename + '</li>';
+    });
+    this.templateListUlElm.innerHTML = listTemplateData;
+
+    const that = this;
+    let listTemplateElms = this.templateListUlElm.querySelectorAll('li');
+    for(let cnt=0,len=listTemplateElms.length;cnt<len;++cnt) {
+      listTemplateElms[cnt].addEventListener('click', function() {
+        that.editTemplateData(cnt);
+      });
+    }
+  };
+
+  Settings.prototype.resetTemplatePage = function() {
+    if(this.isEdit) {
+      this.is0OK = true;
+      this.is23OK = true;
+      this.is4OK = true;
+    }
+    for(let cnt=0;cnt<3;++cnt) {
+      this.formAlertElms[cnt].innerHTML = '';
+    }
+
+    this.templateSettingsFormInputElms[0].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[2].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[3].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[5].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[6].classList.remove('formAlert');
+    this.templateSettingsFormInputElms[7].classList.remove('formAlert');
+
+    if(this.isEdit) {
+      this.backToListElm.classList.remove('d-none');
+      this.navTabContentDivElms[0].className = 'tab-pane fade';
+      this.navTabContentDivElms[1].className = 'tab-pane fade show active';
+      this.saveTemplateBtnElm.textContent = '上書き保存する';
+  
+      for(let cnt=5;cnt<=7;++cnt) {
+        this.templateSettingsFormInputElms[cnt].parentNode.classList.remove('d-none');
+      }
+    }
+    else {
+      this.backToListElm.classList.add('d-none');
+      this.saveTemplateBtnElm.textContent = '保存する';
+
+      for(let cnt=5;cnt<=7;++cnt) {
+        this.templateSettingsFormInputElms[cnt].parentNode.classList.add('d-none');
+        this.templateSettingsFormInputElms[cnt].value = 0;
+      }
+    }
+    this.saveTemplateBtnElm.disabled = true;
+  };
+
+  Settings.prototype.calculateTimeAllocationAndDisplayMessage = function() {
+    let input4Value = parseInt(this.templateSettingsFormInputElms[4].value);
+    let input5Value = parseInt(this.templateSettingsFormInputElms[5].value);
+    let input6Value = parseInt(this.templateSettingsFormInputElms[6].value);
+    let input7Value = parseInt(this.templateSettingsFormInputElms[7].value);
+    this.is4OK = (input4Value===(input5Value+input6Value+input7Value)) ? true : false;
+
+    if(!this.is4OK) {
+      this.formAlertElms[2].textContent = '合計の時間数が合っていません';
+      for(let cnt=5;cnt<=7;++cnt) {
+        this.templateSettingsFormInputElms[cnt].classList.add('formAlert');
+      }
+    }
+    else {
+      this.formAlertElms[2].textContent = '';
+      for(let cnt=5;cnt<=7;++cnt) {
+        this.templateSettingsFormInputElms[cnt].classList.remove('formAlert');
+      }
+    }
+    this.judgeDisabledStatus();
+  };
+
+  Settings.prototype.judgeDisabledStatus = function() {
+    const checkIsNecessaryToSaveEditTemplate = () => {
+      let array = [this.dataGottenForEdit.templatename, this.dataGottenForEdit.paragraphs, this.dataGottenForEdit.min, this.dataGottenForEdit.max, this.dataGottenForEdit.total, this.dataGottenForEdit.planningtime, this.dataGottenForEdit.writingtime, this.dataGottenForEdit.proofreadingtime];
+
+      for(let cnt=0,len=this.templateSettingsFormInputElms.length;cnt<len;++cnt) {
+        if(this.templateSettingsFormInputElms[cnt].value!=array[cnt]) {
+          return true;
+        }
+      }
+    };
+
+    if(this.templateSettingsFormInputElms[0].value && this.is0OK && this.is23OK && this.is4OK) {
+      if(this.isEdit) {
+        let isNecessaryToSave = checkIsNecessaryToSaveEditTemplate();
+        this.saveTemplateBtnElm.disabled = (isNecessaryToSave) ? false : true;
+      }
+      else {
+        this.saveTemplateBtnElm.disabled = false;
+      }
+    }
+    else {
+      this.saveTemplateBtnElm.disabled = true;
+    }
+  };
+
+  Settings.prototype.checkInputBeforeSave = function() {
+    const that = this;
+
+    const checkInputAndDisplayMessage = (aConditional, aTarget, aTarget2, aIndex, aMessage) => {
+      if(aConditional) {
+        that.formAlertElms[aIndex].textContent = aMessage;
+        aTarget.classList.add('formAlert');
+        if(aTarget2) {
+          aTarget2.classList.add('formAlert');
+        }
+        return 0;
+      }
+      else {
+        return 1;
+      }
+    };
+
+    const checkIsOk = (aIndex, aIndex2, aIndex3, aCheck1, aCheck2) => {
+      if((aCheck1+aCheck2)==2) {
+        that.formAlertElms[aIndex].textContent = '';
+        that.templateSettingsFormInputElms[aIndex2].classList.remove('formAlert');
+        if(aIndex3) {
+          that.templateSettingsFormInputElms[aIndex3].classList.remove('formAlert');
+        }
+        return true;
+      }
+      else {
+        return false;
+      }
+    };
+
+    this.isDuplicate = false;
+
+    this.templateSettingsFormInputElms[0].addEventListener('keyup', function() {
+      let input0Value = this.value;
+      let duplicateNumber = 0;
+      let editDuplicateNumber = 0;
+
+      that.templateData.forEach((value, key) => {
+        if(value.templatename==input0Value) {
+          ++duplicateNumber;
+          if(that.editTemplateId!=key) {
+            ++editDuplicateNumber;
+          }
+        }
+      });
+
+      if(that.isEdit) {
+        that.isDuplicate = (editDuplicateNumber) ? true : false;
+      }
+      else {
+        that.isDuplicate = (duplicateNumber) ? true : false;
+      }
+
+      let check1 = checkInputAndDisplayMessage(that.isDuplicate, this, null, 0, 'テンプレート名が重複しています');
+      let check2 = checkInputAndDisplayMessage(!this.value, this, null, 0, '入力してください');
+
+      that.is0OK = checkIsOk(0, 0, null, check1, check2);
+
+      that.judgeDisabledStatus();
+    });
+
+    this.templateSettingsFormInputElms[1].addEventListener('change', function() {
+      that.judgeDisabledStatus();
+    });
+
+    for(let cnt=0;cnt<2;++cnt) {
+      this.templateSettingsFormInputElms[(cnt+2)].addEventListener('keyup', function() {
+
+        let check1 = checkInputAndDisplayMessage(that.isDuplicate, that.templateSettingsFormInputElms[0], null, 0, 'テンプレート名が重複しています');
+        let check2 = checkInputAndDisplayMessage(!that.templateSettingsFormInputElms[0].value, that.templateSettingsFormInputElms[0], null, 0, '入力してください');
+  
+        that.is0OK = checkIsOk(0, 0, null, check1, check2);
+
+        let isInteger = true;
+        if(!Number.isInteger(Number(that.templateSettingsFormInputElms[2].value)) || !Number.isInteger(Number(that.templateSettingsFormInputElms[2].value))) {
+          isInteger = false;
+        }
+        let num1 = parseInt(that.templateSettingsFormInputElms[2].value);
+        let num2 = parseInt(that.templateSettingsFormInputElms[3].value);
+
+        check1 = checkInputAndDisplayMessage((num1<1 || num2<1 || !num1 || !num2 || !isInteger), that.templateSettingsFormInputElms[2], that.templateSettingsFormInputElms[3], 1, '自然数を入力してください');
+        check2 = checkInputAndDisplayMessage((num1>num2), that.templateSettingsFormInputElms[2], that.templateSettingsFormInputElms[3], 1, '「最小〜最大」で入力してください');
+
+        that.is23OK = checkIsOk(1, 2, 3, check1, check2);
+        that.judgeDisabledStatus();
+      });
+    }
+
+    this.templateSettingsFormInputElms[4].addEventListener('change', function() {
+      for(let cnt=5;cnt<=7;++cnt) {
+        that.templateSettingsFormInputElms[cnt].parentNode.classList.remove('d-none');
+      }
+
+      let input4Value = this.value;
+      let arrayInputValueIndex5to7 = Array(3);
+
+      for(let cnt=0;cnt<3;++cnt) {
+        arrayInputValueIndex5to7[cnt] = (that.templateSettingsFormInputElms[(cnt+5)].value) ? that.templateSettingsFormInputElms[(cnt+5)].value : 0;
+      }
+
+      that.templateSettingsFormInputElms[4].innerHTML = that.getOptionData(1, 299, '分');
+      that.templateSettingsFormInputElms[4].value = input4Value;
+
+      for(let cnt=5;cnt<=7;++cnt) {
+        that.templateSettingsFormInputElms[cnt].innerHTML = that.getOptionData(0, input4Value, '分');
+      }
+
+      for(let cnt=0;cnt<3;++cnt) {
+        that.templateSettingsFormInputElms[(cnt+5)].value = arrayInputValueIndex5to7[cnt];
+      }
+      that.calculateTimeAllocationAndDisplayMessage();
+    });
+
+    for(let cnt=5;cnt<=7;++cnt) {
+      this.templateSettingsFormInputElms[cnt].addEventListener('change', function() {
+        that.calculateTimeAllocationAndDisplayMessage();
+      });
+    }
+  };
+
+  Settings.prototype.editTemplateData = function(aCnt) {
+    this.isEdit = true;
+    this.resetTemplatePage();
+
+    this.templateSettingsFormInputElms[1].innerHTML = this.getOptionData(1, 9, '段落');
+    this.templateSettingsFormInputElms[4].innerHTML = this.getOptionData(1, 299, '分');
+
+    this.editTemplateId = aCnt+1;
+    this.dataGottenForEdit = this.templateData.get(this.editTemplateId);
+
+    for(let cnt=5;cnt<=7;++cnt) {
+      this.templateSettingsFormInputElms[cnt].innerHTML = this.getOptionData(0, this.dataGottenForEdit.total, '分');
+    }
+
+    this.templateSettingsFormInputElms[0].value = this.dataGottenForEdit.templatename;
+    this.templateSettingsFormInputElms[1].value = this.dataGottenForEdit.paragraphs;
+    this.templateSettingsFormInputElms[2].value = this.dataGottenForEdit.min;
+    this.templateSettingsFormInputElms[3].value = this.dataGottenForEdit.max;
+    this.templateSettingsFormInputElms[4].value = this.dataGottenForEdit.total;
+    this.templateSettingsFormInputElms[5].value = this.dataGottenForEdit.planningtime;
+    this.templateSettingsFormInputElms[6].value = this.dataGottenForEdit.writingtime;
+    this.templateSettingsFormInputElms[7].value = this.dataGottenForEdit.proofreadingtime;
+
+    this.checkInputBeforeSave();
+  };
+
+  Settings.prototype.addNewTemplate = function() {
+    this.isEdit = false;
+    this.resetTemplatePage();
+
+    this.templateSettingsFormInputElms[0].value = '';
+    this.templateSettingsFormInputElms[1].innerHTML = this.getOptionData(1, 9, '段落');
+    this.templateSettingsFormInputElms[2].value = 200;
+    this.templateSettingsFormInputElms[3].value = 240;
+    this.templateSettingsFormInputElms[4].innerHTML = this.getOptionData(0, 300, '分');
+
+    this.checkInputBeforeSave();
+  };
+
+  Settings.prototype.resetTopicPage = function() {
+    let topicInputData = '';
+    for(let cnt=0,len=this.topicData.length;cnt<len;++cnt) {
+      topicInputData += '<input type="text" class="form-control mx-2 mb-3" value="' + this.topicData[cnt] + '">';
+    }
+    topicInputData += '<input type="text" class="form-control mx-2 mb-3">';
+    this.topicInputAreaElm.innerHTML = topicInputData;
+
+    this.inputTopicElms = this.topicInputAreaElm.querySelectorAll('input');
+  };
+
+  Settings.prototype.saveData = function(aPage) {
+    if(aPage=='topic') {
+      localStorage.setItem('writingTrainerTopicData', JSON.stringify(this.inputArray));
+      topicDataGlobal = this.inputArray;
+      this.topicData = this.inputArray;
+      this.isTopicChanged = false;
+      this.saveTopicBtnElm.disabled = true;
+
+      this.resetTopicPage();
+
+      switchPages.resetPages();
+      switchPages.setPage();
+
+      const judgeSaveBtnDisabled = () => {
+        console.log(this.inputTopicElms);
+        this.inputTopicElms.forEach(elm => {
+          elm.addEventListener('keyup', function() {
+            that.saveTopicBtnElm.disabled = checkIsBtnDisabled();
+          });
+        });
+      };
+  
+      judgeSaveBtnDisabled();
+      this.addTopicBtnElm.addEventListener('click', function() {
+        let inputElm = document.createElement('input');
+        inputElm.type = 'text';
+        inputElm.className = 'form-control mx-2 mb-3';
+        inputElm.value = '';
+        that.topicInputAreaElm.appendChild(inputElm);
+        that.inputTopicElms = that.topicInputAreaElm.querySelectorAll('input');
+        judgeSaveBtnDisabled();
+      });
+  
+      this.saveTopicBtnElm.addEventListener('click', function() {
+        that.saveData('topic');
+      });
+    }
+    else {
+      if(!this.templateSettingsFormInputElms[0].value) {
+        return;
+      }
+      let id = (this.isEdit) ? this.editTemplateId : this.templateData.size+1;
+      this.templateData.set(id, { templatename:this.templateSettingsFormInputElms[0].value, paragraphs:this.templateSettingsFormInputElms[1].value, min:this.templateSettingsFormInputElms[2].value, max:this.templateSettingsFormInputElms[3].value, total:this.templateSettingsFormInputElms[4].value, planningtime:this.templateSettingsFormInputElms[5].value, writingtime:this.templateSettingsFormInputElms[6].value, proofreadingtime:this.templateSettingsFormInputElms[7].value});
+      localStorage.setItem('writingTrainerTemplateData', JSON.stringify([...this.templateData]));
+      templateDataGlobal = this.templateData;
+
+      this.templateSettingsFormInputElms[0].value = '';
+      
+      this.displayTemplateListData();
+      this.navTabContentDivElms[0].className = 'tab-pane fade show active';
+      this.navTabContentDivElms[1].className = 'tab-pane fade';
+      this.isEdit = false;
+      this.backToListElm.classList.add('d-none');
+      this.navTabBtnElms[0].className = 'nav-link active';
+      this.navTabBtnElms[1].className = 'nav-link';
+
+      switchPages.setPage();
+    }
+  };
+
+  Settings.prototype.setEventForTopicSettings = function() {
+    const that = this;
+
+    if(this.topicData.length) {
+      this.resetTopicPage();
+    }
+
+    this.saveTopicBtnElm.disabled = true;
+
+    const checkIsBtnDisabled = () => {
+      this.inputArray = [];
+      let index = 0;
+      for(let cnt=0,len=this.inputTopicElms.length;cnt<len;++cnt) {
+        if(this.inputTopicElms[cnt].value) {
+          this.inputArray[index] = this.inputTopicElms[cnt].value;
+          ++index;
+        }
+      }
+      const isDuplicateArray = this.inputArray.filter((value, index, array) => {
+        return array.indexOf(value) != index;
+      });
+
+      this.inputTopicElms.forEach(elm => {
+        elm.classList.remove('formAlert');
+        isDuplicateArray.forEach(val => {
+          if(elm.value==val) {
+            elm.classList.add('formAlert');
+          }
+        })
+      });
+
+      let formAlertElm = this.topicSettingsElm.querySelector('.js-formAlert');
+      formAlertElm.textContent = (isDuplicateArray.length) ? 'トピックが重複しています' : '';
+      
+      return (isDuplicateArray.length || JSON.stringify(this.inputArray)==JSON.stringify(this.topicData)) ? true : false;
+    };
+
+  };
+
+  Settings.prototype.setEvent = function() {
+    this.saveTemplateBtnElm.disabled = true;
+    if(!this.templateData.size) {
+      this.initialState();
+    }
+    else {
+      this.displayTemplateListData();
+    }
+
+    const that = this;
+    this.saveTemplateBtnElm.addEventListener('click', function() {
+      that.saveData('template');
+    });
+
+    this.navTabBtnElms[1].addEventListener('click', function() {
+      that.addNewTemplate();
+    });
+
+    this.backToListBtnElm.addEventListener('click', function() {
+      that.navTabContentDivElms[0].className = 'tab-pane fade show active';
+      that.navTabContentDivElms[1].className = 'tab-pane fade';
+    });
+
+    this.setEventForTopicSettings();
+  };
+
+  Settings.prototype.run = function() {
+    this.setEvent();
+  };
+
+
+  const Practice = function() {
+    this.initialize.apply(this, arguments);
+  };
+
+  Practice.prototype.initialize = function() {
+    this.practiceData = practiceDataGlobal;
+
+    let maxNum = 2;
+    this.practicePageFormInputElms = Array(maxNum);
+    this.practicePageSelectElm = Array(maxNum);
+    this.practicePageDatalistElm = Array(maxNum);
+    this.practicePageInputElm = Array(maxNum);
+
+    this.practiceDivElms = document.querySelectorAll('.js-practice');
+    for(let cnt=0;cnt<maxNum;++cnt) {
+      this.practicePageFormInputElms[cnt] = this.practiceDivElms[cnt].querySelectorAll('.js-formInput');
+      this.practicePageSelectElm[cnt] = this.practicePageFormInputElms[cnt][0];
+      this.practicePageDatalistElm[cnt] = this.practicePageFormInputElms[cnt][1];
+      this.practicePageInputElm[cnt] = this.practicePageFormInputElms[cnt][1].parentNode.querySelector('input');  
+    }
+
+    this.templateData = templateDataGlobal;
+    this.topicData = topicDataGlobal;
+
+    this.practiceStartBtnElm = document.querySelector('.js-practiceStartBtn');
+    this.practiceStartBtnElm.disabled = true;
+    this.currentPracticeData = new Map();
+
+    this.practiceSelectedSettingsElm = document.querySelector('.js-practiceSelectedSettings');
+    this.practicePlanningTimeElm = document.querySelector('.js-practicePlanningTime');
+    this.practiceNotesTextAreaElm = document.querySelector('.js-practiceNotesTextArea');
+    this.practiceWritingStartBtnElm = document.querySelector('.js-practiceWritingStartBtn');
+    this.practiceWritingStartBtnElm.disabled = true;
+    this.practiceChangeBtnElm = document.querySelector('.js-practiceChangeBtn');
+    this.practiceChangeBtnElm.disabled = true;
+    this.practiceCloseBtnElm = document.querySelector('.js-practiceCloseBtn');
+
+    this.tempTemplateNameForModal = '';
+    this.tempTopicNameForModal = '';
+
+    this.startTime = 0;
+    this.timerID = 0;
+
+    this.practiceWritingTotalCountElm = document.querySelector('.js-practiceWritingTotalCount');
+    this.practiceProofreadingTotalCountElm = document.querySelector('.js-practiceProofreadingTotalCount');
+    this.paragraphsNum = 0;
+
+    this.totalNum = 0;
+    this.wordNum = [];
+    this.isUnderEditArray = [false, false, false, false];
+
+    this.practiceProofreadingTimeElm = document.querySelector('.js-practiceProofreadingTime');
+    this.practiceCompleteBtnElm = document.querySelector('.js-practiceCompleteBtn');
+
+    this.practiceResultBtnElms = document.querySelectorAll('.js-practiceResultBtn');
+    this.goToReviewPageBtnElm = this.practiceResultBtnElms[0];
+    this.deleteThisPracticeResultBtnElm = this.practiceResultBtnElms[1];
+
+    this.practiceWritingTextAreaElms = Array(2);
+    this.practiceWritingWordNumElms = Array(2);
+  };
+
+  Practice.prototype.resetPractice = function() {
+    this.goToNextPage(0);
+    this.practiceStartBtnElm.disabled = true;
+    this.practiceWritingStartBtnElm.disabled = true;
+    this.practiceChangeBtnElm.disabled = true;
+  };
+
+  Practice.prototype.setAndSaveData = function(aId, aValue) {
+    this.practiceData.set(aId, aValue);
+    localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...this.practiceData]));
+  };
+  
+  Practice.prototype.goToNextPage = function(aNextIndex, aPractice2) {
+    if(aNextIndex!=null) {
+      this.practiceDivElms.forEach(elm => {
+        elm.classList.add('d-none');
+      });
+      this.practiceDivElms[aNextIndex].classList.remove('d-none');  
+    }
+
+    if(aPractice2!=null) {
+      this.practice2DivElms = document.querySelectorAll('.js-practice2');
+      let index = (aPractice2==1) ? [0,1] : [1, 0];
+      this.practice2DivElms[index[0]].classList.remove('d-none');
+      this.practice2DivElms[index[1]].classList.add('d-none');
+    }
+  };
+
+  Practice.prototype.setAndChangeTemplate = function(aIndex) {
+    let selectedOption = this.practicePageSelectElm[aIndex].options[this.practicePageSelectElm[aIndex].selectedIndex];
+    let selectedOptionDataKey = selectedOption.dataset.key;
+    this.selectedTemplateData = this.templateData.get(parseInt(selectedOptionDataKey));
+
+    this.currentPracticeData.paragraphs = this.selectedTemplateData.paragraphs;
+    this.currentPracticeData.min = this.selectedTemplateData.min;
+    this.currentPracticeData.max = this.selectedTemplateData.max;
+    this.currentPracticeData.total = this.selectedTemplateData.total;
+    this.currentPracticeData.planningtime = this.selectedTemplateData.planningtime;
+    this.currentPracticeData.writingtime = this.selectedTemplateData.writingtime;
+    this.currentPracticeData.proofreadingtime = this.selectedTemplateData.proofreadingtime;  
+  };
+
+  Practice.prototype.savePracticeData = function(aStatus) {
+    const that = this;
+
+    const getDisplayDateAndTime = function(aStartTime, aEndTime) {
+      const getTime = (aTime) => {
+        let date = new Date(aTime);
+        let dateY = date.getFullYear();
+        let dateM = date.getMonth() + 1;
+        let dateD = date.getDate();
+        let dateH = date.getHours();
+        let dateMi = date.getMinutes();
+        if(dateMi<10) {
+          dateMi = '0' + dateMi;
+        }
+        return [dateY, dateM, dateD, dateH, dateMi];
+      };
+
+      let startTimeForDisplay = getTime(aStartTime);
+      let result = startTimeForDisplay[0] + '/' + startTimeForDisplay[1] + '/' + startTimeForDisplay[2] + ' ' + startTimeForDisplay[3] + ':' + startTimeForDisplay[4];
+      if(aEndTime) {
+        let endTimeForDisplay = getTime(aEndTime);
+        result += '〜';
+        result += (startTimeForDisplay[0]==endTimeForDisplay[0] && startTimeForDisplay[1]==endTimeForDisplay[1] && startTimeForDisplay[2]==endTimeForDisplay[2]) ? '' : (endTimeForDisplay[0] + '/' + endTimeForDisplay[1] + '/' + endTimeForDisplay[2] + ' ');
+        result += endTimeForDisplay[3] + ':' + endTimeForDisplay[4];  
+      }
+      return result;
+    };
+
+    if(aStatus=='1st') {
+      this.setAndChangeTemplate(0);
+
+      this.id = this.practiceData.size + 1;
+      this.startTime = new Date();
+      this.currentPracticeData.startTime = this.startTime;
+      this.currentPracticeData.templatename = this.practicePageSelectElm[0].value;
+      this.currentPracticeData.topicname = this.practicePageInputElm[0].value;
+      this.practicePageSelectElm[0].value = '';
+      this.practicePageInputElm[0].value = '';
+      this.currentPracticeData.status = '1st';
+      this.currentPracticeData.displayDate = getDisplayDateAndTime(this.startTime, null);
+
+      this.setAndSaveData(this.id, this.currentPracticeData);
+      this.goToNextPage(1, 1);
+    }
+    else if(aStatus=='2nd') {
+      clearTimeout(this.timerID);
+      this.currentPracticeData.startTime = this.startTime;
+      this.currentPracticeData.notes = this.practiceNotesTextAreaElm.value;
+      this.practiceNotesTextAreaElm.value = '';
+      this.currentPracticeData.timetaken1 = this.timeTaken;
+      this.currentPracticeData.isplus1 = this.isPlus;
+      this.currentPracticeData.status = '2nd';
+      this.setAndSaveData(this.id, this.currentPracticeData);
+      this.goToNextPage(null, 2);
+    }
+    else if(aStatus=='modal') {
+      this.currentPracticeData.templatename = (this.tempTemplateNameForModal) ? this.tempTemplateNameForModal : null;
+      this.currentPracticeData.topicname = (this.tempTopicNameForModal) ? this.tempTopicNameForModal : null;
+
+      this.setAndChangeTemplate(1);
+      
+      this.setAndSaveData(this.id, this.currentPracticeData);
+      if(this.currentPracticeData.status=='2nd') {
+        this.setWritingPage();
+      }
+    }
+    else if(aStatus=='3rd') {
+      clearTimeout(this.timerID);
+      this.currentPracticeData.timetaken2 = this.timeTaken;
+      this.currentPracticeData.isplus2 = this.isPlus;
+      this.currentPracticeData.status = '3rd';
+      this.setAndSaveData(this.id, this.currentPracticeData);
+      this.goToNextPage(2);
+    }
+    else if(aStatus=='4th') {
+      const getDisplayTimeTaken = (aTimeTaken1, aTimeTaken2, aTimeTaken3) => {
+        const getTimeTakenForDisplay = (aTimeTaken) => {
+          let second = Math.round(parseInt(aTimeTaken)/1000);
+          if(second>60) {
+            let result = (second%60) ? (Math.floor(second/60) + '分' + second%60 + '秒') : (Math.floor(second/60) + '分');
+            return result;
+          }
+          return (second + '秒');
+        };
+  
+        let result = 'メモ' + getTimeTakenForDisplay(this.currentPracticeData.timetaken1) + '、';
+        result += 'ライティング' + getTimeTakenForDisplay(this.currentPracticeData.timetaken2) + '、';
+        result += '校正' + getTimeTakenForDisplay(this.currentPracticeData.timetaken3);
+
+        return result;
+      };
+
+      clearTimeout(this.timerID);
+      this.currentPracticeData.timetaken3 = this.timeTaken;
+      this.currentPracticeData.isplus3 = this.isPlus;
+      let startTime = new Date(this.startTime);
+      this.currentPracticeData.endTime = new Date();
+      this.currentPracticeData.displayDate = getDisplayDateAndTime(startTime, this.currentPracticeData.endTime);
+      this.currentPracticeData.displayTimeTaken = getDisplayTimeTaken(this.currentPracticeData.timetaken1, this.currentPracticeData.timetaken2, this.currentPracticeData.timetaken3);
+      this.currentPracticeData.status = 'complete';
+      this.setAndSaveData(this.id, this.currentPracticeData);
+      this.goToNextPage(3);
+    }
+  };
+
+  Practice.prototype.setSelectArea = function(aIndex) {
+    let optionTemplateData = '';
+    let selected = '';
+    this.templateData.forEach((value, key) => {
+      selected = (aIndex && (value.templatename==this.currentPracticeData.templatename)) ? ' selected' : '';
+      optionTemplateData += '<option value="' + value.templatename + '" data-key="' + key + '"' + selected + '>' + value.templatename + '</option>';
+    });
+    if(!aIndex) {
+      optionTemplateData += '<option value="addNewTemplate">新しくテンプレートを設定する</option>';
+    }
+    this.practicePageSelectElm[aIndex].innerHTML = optionTemplateData;
+
+    let optionTopicData = '';
+    for(let cnt=0,len=this.topicData.length;cnt<len;++cnt) {
+      optionTopicData += '<option value="' + this.topicData[cnt] + '">' + this.topicData[cnt] + '</option>';
+    }
+    this.practicePageDatalistElm[aIndex].innerHTML = optionTopicData;
+    if(aIndex) {
+      this.practicePageInputElm[aIndex].value = this.currentPracticeData.topicname;
+    }
+  };
+
+  Practice.prototype.getRemainingTime = function(aStatus) {
+    const getRemainingTime = () => {
+      this.isPlus = true;
+      let settingTime = 0;
+      if(aStatus=='planning') {
+        settingTime = parseInt(this.currentPracticeData.planningtime) * 60000;
+      }
+      else if(aStatus=='writing') {
+        settingTime = parseInt(this.currentPracticeData.writingtime) * 60000;
+      }
+      else {
+        settingTime = parseInt(this.currentPracticeData.proofreadingtime) * 60000;
+      }
+
+      if(settingTime>=(Date.now()-this.startTime)) {
+        this.timeTaken = Date.now() - this.startTime;
+        this.remainingTime = settingTime - this.timeTaken;
+        this.isPlus = true;
+      }
+      else {
+        this.remainingTime = (Date.now() - this.startTime) - settingTime;
+        this.timeTaken = settingTime + this.remainingTime;
+        this.isPlus = false;
+      }
+      let diff = new Date(this.remainingTime);
+      let m = String(diff.getMinutes());
+      let s = String(diff.getSeconds());
+      let displayDiff = (m!='0') ? (m + '分' + s + '秒') : (s + '秒');
+
+      if(aStatus=='planning') {
+        displayDiff = (this.isPlus) ? '方向性・構成を決める残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
+        this.practicePlanningTimeElm.innerHTML = displayDiff;
+      }
+      else if(aStatus=='writing') {
+        displayDiff = (this.isPlus) ? '内容を書く残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
+        this.practiceWritingTimeElm.innerHTML = displayDiff;
+      }
+      else {
+        displayDiff = (this.isPlus) ? '校正をする残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
+        this.practiceProofreadingTimeElm.innerHTML = displayDiff;
+      }
+      this.timerID = setTimeout(getRemainingTime, 30);
+    };
+
+    this.startTime = Date.now();
+    getRemainingTime(aStatus);
+  };
+
+  Practice.prototype.setPlanningPage = function(aCurrentPracticeData, aId) {
+    if(aCurrentPracticeData) {
+      this.currentPracticeData = aCurrentPracticeData;
+      this.id = aId;
+    }
+    else {
+      this.currentPracticeData = this.practiceData.get(this.id);
+    }
+    this.practiceSelectedSettingsElm.innerHTML = 'テンプレート：' + this.currentPracticeData.templatename + '<br>トピック：' + this.currentPracticeData.topicname;
+    this.getRemainingTime('planning');
+
+    this.practiceWritingTotalCountElm.textContent = '合計0語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
+  };
+
+  Practice.prototype.getParagraphsTextArea = function(aDisabled) {
+    let paragraphsTextArea = '';
+    let disabled = (aDisabled) ? ' disabled' : '';
+    for(cnt=0;cnt<this.paragraphsNum;++cnt) {
+      paragraphsTextArea += `<div class="row mb-4">`;
+      if(aDisabled) {
+        paragraphsTextArea += `<div class="position-relative">`;
+      }
+      paragraphsTextArea += `<textarea class="form-control js-practiceWritingTextArea" rows="7"` + disabled + `></textarea>`;
+      if(aDisabled) {
+        paragraphsTextArea += `<div class="position-absolute bottom-0 end-0 mb-2 me-4">
+        <button class="btn btn-secondary d-none js-practiceWritingCancelBtn">キャンセル</button>
+        <button class="btn btn-primary js-practiceWritingReviseBtn">修正する</button>
+        </div></div>`;
+      }
+      paragraphsTextArea += `<div class="text-end"><span class="js-practiceWritingWordNum"></span>語</div></div>`;
+    }
+    return paragraphsTextArea;
+  };
+
+  Practice.prototype.getWordNum = function(aIndex, aElm, aBtnElm) {
+    this.totalNum = 0;
+    this.wordNum = Array(this.paragraphsNum);
+    for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
+      this.wordNum[cnt] = 0;
+      let valueArray = this.practiceWritingTextAreaElms[aIndex][cnt].value.split(' ');
+      let valueArrayTrue = valueArray.map(val=>(val!='')).filter(Boolean);
+      this.wordNum[cnt] = valueArrayTrue.length;
+      this.practiceWritingWordNumElms[aIndex][cnt].textContent = this.wordNum[cnt];
+      if(valueArrayTrue) {
+        this.totalNum += this.wordNum[cnt];
+      }
+    }
+    aElm.textContent = '合計' + this.totalNum + '語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
+    aBtnElm.disabled = (this.totalNum) ? false : true;
+    if(!aIndex) {
+      this.currentPracticeData.totalnum = this.totalNum;
+      this.currentPracticeData.wordnum = this.wordNum;  
+    }
+  };
+
+  Practice.prototype.setWritingPage = function(aCurrentPracticeData, aId) {
+    if(aCurrentPracticeData!=null) {
+      this.currentPracticeData = aCurrentPracticeData;
+      this.id = aId;
+    }
+
+    const that = this;
+
+    let practiceWritingNotesElm = document.querySelector('.js-practiceWritingNotes');
+    practiceWritingNotesElm.innerHTML = this.currentPracticeData.notes.replace(/\n/g, '<br>');
+
+    this.getRemainingTime('writing');
+
+    this.paragraphsNum = this.currentPracticeData.paragraphs;
+    let paragraphsDivElm = this.practiceDivElms[1].querySelector('.js-paragraphs');
+    paragraphsDivElm.innerHTML = this.getParagraphsTextArea(false);
+
+    let practiceProofreadingStartBtnElm = document.querySelector('.js-practiceProofreadingStartBtn');
+    practiceProofreadingStartBtnElm.disabled = true;
+
+    this.practiceWritingTextAreaElms[0] = this.practiceDivElms[1].querySelectorAll('.js-practiceWritingTextArea');
+    this.practiceWritingWordNumElms[0] = this.practiceDivElms[1].querySelectorAll('.js-practiceWritingWordNum');
+
+    for(let cnt=0;cnt<that.paragraphsNum;++cnt) {
+      this.practiceWritingTextAreaElms[0][cnt].addEventListener('keyup', function() {
+        that.getWordNum(0, that.practiceWritingTotalCountElm, practiceProofreadingStartBtnElm);
+      });
+    }
+
+    practiceProofreadingStartBtnElm.addEventListener('click', function() {
+      that.setProofreadingPage();
+    });
+
+  };
+
+  Practice.prototype.setProofreadingPage = function(aCurrentPracticeData, aId) {
+
+    if(aCurrentPracticeData!=null) {
+      this.currentPracticeData = aCurrentPracticeData;
+      this.id = aId;
+    }
+    else {
+      let textAreaValueArray = Array(this.paragraphsNum);
+      for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
+        textAreaValueArray[cnt] = this.practiceWritingTextAreaElms[0][cnt].value;
+      }
+      this.currentPracticeData.sentences = textAreaValueArray;
+    }
+
+    const that = this;
+
+    this.savePracticeData('3rd');
+    this.getRemainingTime('proofreading');
+
+    let paragraphsDivElm = this.practiceDivElms[2].querySelector('.js-paragraphs');
+    paragraphsDivElm.innerHTML = this.getParagraphsTextArea(true);
+
+    this.practiceWritingTextAreaElms[1] = this.practiceDivElms[2].querySelectorAll('.js-practiceWritingTextArea');
+    this.practiceWritingWordNumElms[1] = this.practiceDivElms[2].querySelectorAll('.js-practiceWritingWordNum');
+    let practiceWritingReviseBtnElms = this.practiceDivElms[2].querySelectorAll('.js-practiceWritingReviseBtn');
+    let practiceWritingCancelBtnElms = this.practiceDivElms[2].querySelectorAll('.js-practiceWritingCancelBtn');
+
+    this.practiceProofreadingTotalCountElm.textContent = '合計' + this.currentPracticeData.totalnum + '語/' + this.currentPracticeData.min + '-' + this.currentPracticeData.max + '語';
+
+    for(let cnt=0;cnt<this.paragraphsNum;++cnt) {
+      this.practiceWritingTextAreaElms[1][cnt].value = this.currentPracticeData.sentences[cnt];
+      this.practiceWritingWordNumElms[1][cnt].textContent = this.currentPracticeData.wordnum[cnt];
+      practiceWritingReviseBtnElms[cnt].addEventListener('click', function() {
+        that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
+        if(that.isUnderEditArray[cnt]) {
+          practiceWritingReviseBtnElms.forEach(elm => {
+            elm.disabled = true;
+          });
+          that.practiceWritingTextAreaElms[1][cnt].disabled = false;
+          that.practiceWritingTextAreaElms[1][cnt].focus();
+          this.textContent = '修正完了';
+          practiceWritingCancelBtnElms[cnt].classList.remove('d-none');
+        }
+        else {
+          that.practiceWritingTextAreaElms[1][cnt].disabled = true;
+          this.textContent = '修正する';
+          practiceWritingCancelBtnElms[cnt].classList.add('d-none');
+          practiceWritingReviseBtnElms.forEach(elm => {
+            elm.disabled = false;
+          });
+          that.currentPracticeData.sentences[cnt] = that.practiceWritingTextAreaElms[1][cnt].value;
+          that.currentPracticeData.wordnum[cnt] = that.wordNum[cnt];
+          that.currentPracticeData.totalnum = that.totalNum;
+          that.setAndSaveData(that.id, that.currentPracticeData);
+        }
+      });
+      practiceWritingCancelBtnElms[cnt].addEventListener('click', function() {
+        that.isUnderEditArray[cnt] = !that.isUnderEditArray[cnt];
+        practiceWritingReviseBtnElms.forEach(elm => {
+          elm.disabled = false;
+        });
+        practiceWritingReviseBtnElms[cnt].textContent = '修正する';
+        that.practiceWritingTextAreaElms[1][cnt].disabled = true;
+        this.classList.add('d-none');
+        that.practiceWritingTextAreaElms[1][cnt].value = that.currentPracticeData.sentences[cnt];
+        that.practiceWritingWordNumElms[1][cnt].textContent = that.currentPracticeData.wordnum[cnt];
+        that.practiceProofreadingTotalCountElm.textContent = '合計' + that.currentPracticeData.totalnum + '語/' + that.currentPracticeData.min + '-' + that.currentPracticeData.max + '語';
+      });
+      this.practiceWritingTextAreaElms[1][cnt].addEventListener('keyup', function() {
+        that.getWordNum(1, that.practiceProofreadingTotalCountElm, practiceWritingReviseBtnElms[cnt]);
+      });
+    }
+  };
+
+  Practice.prototype.setEvent = function() {
+    this.setSelectArea(0);
+
+    const that = this;
+
+    // 1st page start
+    this.displayResumptionList();
+
+    this.practicePageSelectElm[0].addEventListener('change', function() {
+      if(this.value=='addNewTemplate') {
+        switchPages.resetPages();
+        switchPages.setPage(2);
+        settings.displayTemplateListData();
+      }
+    });
+
+    this.practicePageInputElm[0].addEventListener('keyup', function() {
+      that.practiceStartBtnElm.disabled = (this.value) ? false : true;
+    });
+
+    this.practiceStartBtnElm.addEventListener('click', function() {
+      that.savePracticeData('1st');
+      that.setPlanningPage();
+      that.setSelectArea(1);
+    });
+    // 1st page end
+
+    // 2nd and 3rd page start
+    this.practiceNotesTextAreaElm.addEventListener('keyup', function() {
+      that.practiceWritingStartBtnElm.disabled = (this.value) ? false: true;
+    });
+
+    this.practiceWritingTimeElm = document.querySelector('.js-practiceWritingTime');
+    this.practiceWritingStartBtnElm.addEventListener('click', function() {
+      that.savePracticeData('2nd');
+      that.setWritingPage();
+    });
+
+    this.practicePageSelectElm[1].addEventListener('change', function() {
+      that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentPracticeData.templatename) ? false : true;
+      that.tempTemplateNameForModal = this.value;
+      that.tempTopicNameForModal = that.practicePageInputElm[1].value;
+    });
+
+    this.practicePageInputElm[1].addEventListener('keyup', function() {
+      that.practiceChangeBtnElm.disabled = (this.value && this.value!=that.currentPracticeData.topicname) ? false : true;
+      that.tempTopicNameForModal = this.value;
+      that.tempTemplateNameForModal = that.practicePageSelectElm[1].value;
+    });
+
+    this.practiceChangeBtnElm.addEventListener('click', function() {
+      that.savePracticeData('modal');
+      that.setPlanningPage();
+      this.disabled = true;
+    });
+
+    this.practiceCloseBtnElm.addEventListener('click', function() {
+      that.setSelectArea(1);
+    });
+    // 2nd and 3rd page end
+
+    // 4th page start
+    this.practiceCompleteBtnElm.addEventListener('click', function() {
+      that.savePracticeData('4th');
+      let currentData = that.practiceData.get(that.id);
+      that.displayResult('.js-practiceResult', currentData);
+      switchPages.hideOrDisplayMenuToReview(true);
+    });
+
+    this.goToReviewPageBtnElm.addEventListener('click', function() {
+      practiceDataGlobal = that.practiceData;
+      review.displayList();
+      switchPages.resetPages();
+      switchPages.setPage(1);
+    });
+
+    this.deleteThisPracticeResultBtnElm.addEventListener('click', function() {
+      that.practiceData.delete(that.id);
+      that.practiceData = deleteAndSortPracticeData(that.id, that.practiceData);
+      window.location.reload(false);//要検討
+    });
+    // 4th page end
+  };
+
+  Practice.prototype.displayResult = function(aClass, aCurrentData) {
+    let resultElms = document.querySelectorAll(aClass);
+
+    let result = '設定：' + aCurrentData.templatename + '<br>';
+    result += 'トピック：' + aCurrentData.topicname + '<br>';
+    result += '実施日時：' + aCurrentData.displayDate + '<br>';
+    result += '所要時間：' + aCurrentData.displayTimeTaken + '<br>';
+
+    resultElms[0].innerHTML = result;
+    resultElms[1].innerHTML = aCurrentData.notes.replace(/\n/g, '<br>');
+
+    result = '';
+    for(let cnt=0,len=aCurrentData.sentences.length;cnt<len;++cnt) {
+      if(aCurrentData.sentences[cnt]) {
+        result += '<p>' + aCurrentData.sentences[cnt] + '</p>';
+      }
+    }
+    resultElms[2].innerHTML = result;
+
+    result = '合計' + aCurrentData.totalnum + '語 / ' + aCurrentData.min + '-' + aCurrentData.max + '語';
+    resultElms[3].innerHTML = result;
+  };
+
+  Practice.prototype.displayResumptionList = function() {
+    const that = this;
+
+    let resumption = document.querySelector('.js-resumption');
+    let resumptionListElm = document.querySelector('.js-resumptionList');
+    let result = '';
+    this.practiceData.forEach((val, key) => {
+      if(val.status!='complete') {
+        result += '<div class="border rounded p-2 py-3 m-3">';
+        result += '<ul><li>設定：' + val.templatename + '</li>';
+        result += '<li>トピック：' + val.topicname + '</li>';
+        result += '<li>実施日時：' + val.displayDate + '</li></ul>';
+        result += `<div class="text-end">
+                    <button class="btn btn-primary mx-2 js-deleteResumptionListBtn" data-index="` + key + `">削除する</button>
+                    <button class="btn btn-primary mx-2 js-resumeBtn" data-index="` + key + `">再開する</button>
+                  </div>
+                  </div>`;
+        resumption.classList.remove('d-none');
+      }
+    });
+
+    if(result) {
+      resumptionListElm.innerHTML = result;
+      resumptionListElm.parentNode.classList.remove('d-none');
+
+      let id = 0;
+      let deleteResumptionListBtnElms = document.querySelectorAll('.js-deleteResumptionListBtn');
+      deleteResumptionListBtnElms.forEach(elm => {
+        elm.addEventListener('click', function() {
+          id = parseInt(this.dataset.index);
+          that.practiceData = deleteAndSortPracticeData(id, that.practiceData);
+
+          let doesNotComplateDataExist = getDoesNotComplateDataExist(that.practiceData);
+          if(doesNotComplateDataExist) {
+            that.displayResumptionList();
+          }
+          else {
+            resumption.classList.add('d-none');
+          }
+        });
+      });
+
+      let resumeBtnElms = document.querySelectorAll('.js-resumeBtn');
+      resumeBtnElms.forEach(elm => {
+        elm.addEventListener('click', function() {
+          id = parseInt(this.dataset.index);
+          let resumptionData = that.practiceData.get(id);
+          if(resumptionData.status=='1st') {
+            practice.setPlanningPage(resumptionData, id);
+            practice.setSelectArea(1);
+            practice.goToNextPage(1, 1);
+          }
+          else if(resumptionData.status=='2nd') {
+            practice.setPlanningPage(resumptionData, id);
+            practice.setWritingPage(resumptionData, id);
+            practice.setSelectArea(1);
+            practice.goToNextPage(1, 2);
+          }
+          else if(resumptionData.status=='3rd') {
+            practice.setPlanningPage(resumptionData, id);
+            practice.setWritingPage(resumptionData, id);
+            practice.setProofreadingPage(resumptionData, id);
+            practice.setSelectArea(1);
+            practice.goToNextPage(2);
+          }
+        });
+      });
+
+    }
+    else {
+      resumptionListElm.parentNode.classList.add('d-none');
+    }
+  };
+
+  Practice.prototype.run = function() {
+    this.setEvent();
+  };
+
+  const deleteAndSortPracticeData = (aId, aData) => {
+    aData.delete(aId);
+    let newPracticeData = new Map();
+    let cnt = 0;
+    aData.forEach((val, key) => {
+      newPracticeData.set(++cnt, val);
+    });
+    localStorage.setItem('writingTrainerPracticeData', JSON.stringify([...newPracticeData]));
+    return newPracticeData;
+  };
+
+  const Review = function() {
+    this.initialize.apply(this, arguments);
+  };
+
+  Review.prototype.initialize = function() {
+    this.templateData = templateDataGlobal;
+    this.topicData = topicDataGlobal;
+
+    this.reviewContElms = document.querySelectorAll('.js-reviewCont');
+    this.reviewContElm = document.querySelector('.js-reviewList');
+
+    this.btnIndex = 0;
+    this.backToListBtnElms = document.querySelectorAll('.js-list .js-backToList button');
+
+    this.reviewSearchSelectElms = document.querySelectorAll('.js-reviewSearchSelect');
+    this.selectedTemplate = '';
+    this.selectedTopic = ''
+
+    this.playbackBtnElm = document.querySelector('.js-playbackBtn');
+    this.text = '';
+
+    this.deleteThisPracticeBtnElm = document.querySelector('.js-deleteThisPracticeBtn');
+  };
+
+  Review.prototype.searchPracticeData = function() {
+    const that = this;
+    let option = '<option value="">選択してください</option>';
+    this.templateData.forEach((val, key) => {
+      option += '<option value="' + val.templatename + '">' + val.templatename + '</option>';
+    });
+    this.reviewSearchSelectElms[0].innerHTML = option;
+
+    option = '<option value="">選択してください</option>';
+    this.topicData.forEach((val) => {
+      option += '<option value="' + val + '">' + val + '</option>';
+    });
+    this.reviewSearchSelectElms[1].innerHTML = option;
+
+    for(let cnt=0;cnt<2;++cnt) {
+      this.reviewSearchSelectElms[cnt].addEventListener('change', function() {
+        if(cnt) {
+          that.selectedTopic = this.value;
+        }
+        else {
+          that.selectedTemplate = this.value;
+        }
+        that.displayList();
+      });  
+    }
+  };
+
+  Review.prototype.displayList = function() {
+    this.practiceData = practiceDataGlobal;
+    let list = '';
+    this.practiceData.forEach((val, key) => {
+      if(val.status=='complete') {
+        if(val.templatename==this.selectedTemplate && val.topicname==this.selectedTopic || val.templatename==this.selectedTemplate && this.selectedTopic=='' || val.topicname==this.selectedTopic && this.selectedTemplate=='' || this.selectedTemplate=='' && this.selectedTopic=='') {
+          list += `<div class="border rounded p-2 py-3 m-3">
+            <ul>
+              <li>設定：` + val.templatename + `</li>
+              <li>トピック：` + val.topicname + `</li>
+              <li>実施日時：` + val.displayDate + `</li>
+              <li>時間配分：` + val.displayTimeTaken + `</li>
+            </ul>
+            <div class="text-end">
+              <button class="btn btn-primary py-1 px-2 mx-2 js-checkDetailBtn" data-index=` + key + `>確認する</button>
+            </div>
+          </div>`;
+        }
+      }
+    });
+    this.reviewContElm.innerHTML = list;
+
+    this.checkDetailBtnElms = document.querySelectorAll('.js-checkDetailBtn');
+    const that = this;
+    this.checkDetailBtnElms.forEach(elm => {
+      elm.addEventListener('click', function() {
+        that.btnIndex = parseInt(this.dataset.index);
+        let currentData = that.practiceData.get(that.btnIndex);
+        practice.displayResult('.js-reviewResult', currentData);
+        that.reviewContElms[0].classList.add('d-none');
+        that.reviewContElms[1].classList.remove('d-none');
+        that.text = currentData.sentences;
+      });
+    });
+  };
+
+  Review.prototype.setEvent = function() {
+    this.displayList();
+    this.searchPracticeData();
+
+    const that = this;
+    this.backToListBtnElms.forEach(elm => {
+      elm.addEventListener('click', function() {
+        that.reviewContElms[0].classList.remove('d-none');
+        that.reviewContElms[1].classList.add('d-none');
+        speechSynthesis.cancel();
+      });
+    });
+
+    this.goToPracticeBtnElm = document.querySelector('.js-goToPracticeBtn');
+    this.goToPracticeBtnElm.addEventListener('click', function() {
+      that.reviewContElms[0].classList.remove('d-none');
+      that.reviewContElms[1].classList.add('d-none');
+      speechSynthesis.cancel();
+    });
+
+    this.playbackBtnElm.addEventListener('click', function() {
+      let text = '';
+      that.text.forEach(val => {
+        text += val + '     ';
+      });
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+    });
+
+    this.deleteThisPracticeBtnElm.addEventListener('click', function() {
+      speechSynthesis.cancel();
+      that.practiceData = deleteAndSortPracticeData(that.btnIndex, that.practiceData);
+
+      that.displayList();
+      that.reviewContElms[0].classList.remove('d-none');
+      that.reviewContElms[1].classList.add('d-none');
+
+      let doesComplateDataExist = getDoesComplateDataExist(that.practiceData);
+      switchPages.hideOrDisplayMenuToReview(doesComplateDataExist);
+
+      if(!doesComplateDataExist) {
+        practice.setSelectArea(0);
+        practice.resetPractice();
+        switchPages.resetPages();
+        switchPages.setPage();
+      }
+    });
+  };
+
+  Review.prototype.run = function() {
+    this.setEvent();
+  };
+
+
+  window.addEventListener('DOMContentLoaded', function() {
+    switchPages = new SwitchPages();
+    switchPages.run();
+
+    settings = new Settings();
+    settings.run();
+
+    practice = new Practice();
+    practice.run();
+
+    review = new Review();
+    review.run();
+  });
+
+}());
