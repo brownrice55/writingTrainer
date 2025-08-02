@@ -1,5 +1,5 @@
 export type InputsTemplate = {
-  name: string;
+  templatename: string;
   paragraphs: number;
   wordcount: number[];
   time: number[];

@@ -15,7 +15,7 @@ export function getData() {
 }
 
 import type { InputsTemplate } from "../types/inputsTemplate.type";
-export function getTemplate() {
+export function getTemplateData() {
   let data = new Map<number, InputsTemplate>();
   const dataFromLocalStorage: string | null = localStorage.getItem(
     "WritingTrainerTemplate"
