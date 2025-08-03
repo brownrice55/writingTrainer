@@ -4,7 +4,7 @@ import { DoesDataExistContext } from "../contexts/context";
 import { getTemplateData, getTopics } from "../utils/common";
 import Header from "../components/Header";
 import FormPractice0 from "../components/FormPractice0";
-// import FormPractice1 from "../components/FormPractice1";
+import FormPractice1 from "../components/FormPractice1";
 
 export default function Practice() {
   const context = useContext(DoesDataExistContext);
@@ -39,8 +39,24 @@ export default function Practice() {
             onUpdate={handleUpdate}
           />
         );
-      // case 1:
-      //   return <FormPractice1 />;
+      case 1:
+        return (
+          <FormPractice1
+            templateData={originalTemplateData}
+            topicData={originalTopicData}
+            status={status}
+            onUpdate={handleUpdate}
+          />
+        );
+      // case 2:
+      //   return (
+      //     <FormPractice2
+      //       templateData={originalTemplateData}
+      //       topicData={originalTopicData}
+      //       status={status}
+      //       onUpdate={handleUpdate}
+      //     />
+      //   );
     }
   };
 
@@ -51,7 +67,7 @@ export default function Practice() {
         description="練習のページです"
         keywords="英語ライティング, ライティング 練習"
       />
-      <p>練習</p>
+      <h1 className="fs-6 py-3">練習</h1>
       {page()}
     </>
   );

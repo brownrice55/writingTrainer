@@ -3,12 +3,11 @@ import { useForm } from "react-hook-form";
 import type { SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
 import { getData } from "../utils/common";
+import FormSelectTemplateAndTopic from "./FormSelectTemplateAndTopic";
 
 type FormPractice0Props = {
   templateData: Map<number, InputsTemplate>;
@@ -63,45 +62,12 @@ export default function FormPractice0({
       <Form onSubmit={handleSubmit(onsubmit, onerror)} noValidate>
         <p>設定とトピックを選んで「スタート」を押してください。</p>
 
-        <Form.Group className="my-4">
-          <Row className="py-3">
-            <Col sm={3}>
-              <Form.Label htmlFor="template">設定</Form.Label>
-            </Col>
-            <Col sm={9} className="text-start">
-              <Form.Select aria-label="template" id="template">
-                {[...templateData].map(([key, val]) => {
-                  return (
-                    <option value={key} key={key}>
-                      {val.templatename}
-                    </option>
-                  );
-                })}
-              </Form.Select>
-            </Col>
-          </Row>
-          <Row className="py-3">
-            <Col sm={3}>
-              <Form.Label htmlFor="topic">トピック</Form.Label>
-            </Col>
-            <Col sm={9} className="text-start">
-              <Form.Control
-                id="topic"
-                as="input"
-                list="topics"
-                {...register("topic", {
-                  required: "必須です",
-                })}
-              />
-              <datalist id="topics">
-                {topicData.topics.map((val, index) => (
-                  <option value={val.topic} key={index} />
-                ))}
-              </datalist>
-              <div className="text-danger pt-2">{errors.topic?.message}</div>
-            </Col>
-          </Row>
-        </Form.Group>
+        <FormSelectTemplateAndTopic
+          templateData={templateData}
+          topicData={topicData}
+          register={register}
+          errors={errors}
+        />
 
         <div className="text-center">
           <Button variant="primary" type="submit" className="py-3 px-5">
