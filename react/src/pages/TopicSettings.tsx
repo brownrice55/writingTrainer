@@ -1,4 +1,5 @@
 import Header from "../components/Header";
+import FormTopic from "../components/FormTopic";
 
 export default function TopicSettings() {
   return (
@@ -8,7 +9,8 @@ export default function TopicSettings() {
         description="トピック設定のページです"
         keywords="トピック設定"
       />
-      <p>トピック設定</p>
+      <h1 className="fs-6 py-3">トピック設定</h1>
+      <FormTopic />
     </>
   );
 }

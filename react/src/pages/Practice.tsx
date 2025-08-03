@@ -1,7 +1,10 @@
-import { useContext, useEffect } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
 import { DoesDataExistContext } from "../contexts/context";
+import { getTemplateData, getTopics } from "../utils/common";
+import Header from "../components/Header";
+import FormPractice0 from "../components/FormPractice0";
+// import FormPractice1 from "../components/FormPractice1";
 
 export default function Practice() {
   const context = useContext(DoesDataExistContext);
@@ -18,6 +21,29 @@ export default function Practice() {
     }
   }, [doesDataExist]);
 
+  const [status, setStatus] = useState<number>(0);
+  const handleUpdate = (aStatus: number) => {
+    setStatus(aStatus);
+  };
+
+  const originalTemplateData = getTemplateData();
+  const originalTopicData = getTopics();
+  const page = () => {
+    switch (status) {
+      case 0:
+        return (
+          <FormPractice0
+            templateData={originalTemplateData}
+            topicData={originalTopicData}
+            status={status}
+            onUpdate={handleUpdate}
+          />
+        );
+      // case 1:
+      //   return <FormPractice1 />;
+    }
+  };
+
   return (
     <>
       <Header
@@ -26,6 +52,7 @@ export default function Practice() {
         keywords="英語ライティング, ライティング 練習"
       />
       <p>練習</p>
+      {page()}
     </>
   );
 }
