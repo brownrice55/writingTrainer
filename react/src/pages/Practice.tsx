@@ -5,6 +5,7 @@ import { getTemplateData, getTopics } from "../utils/common";
 import Header from "../components/Header";
 import FormPractice0 from "../components/FormPractice0";
 import FormPractice1 from "../components/FormPractice1";
+import FormPractice2 from "../components/FormPractice2";
 
 export default function Practice() {
   const context = useContext(DoesDataExistContext);
@@ -48,15 +49,15 @@ export default function Practice() {
             onUpdate={handleUpdate}
           />
         );
-      // case 2:
-      //   return (
-      //     <FormPractice2
-      //       templateData={originalTemplateData}
-      //       topicData={originalTopicData}
-      //       status={status}
-      //       onUpdate={handleUpdate}
-      //     />
-      //   );
+      case 2:
+        return (
+          <FormPractice2
+            templateData={originalTemplateData}
+            topicData={originalTopicData}
+            status={status}
+            onUpdate={handleUpdate}
+          />
+        );
     }
   };
 
