@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DoesDataExistContext } from "../contexts/context";
-import { getTemplateData, getTopics } from "../utils/common";
+import { getData, getTemplateData, getTopics } from "../utils/common";
+import type { Inputs } from "../types/inputs.type";
 import Header from "../components/Header";
 import FormPractice0 from "../components/FormPractice0";
 import FormPractice1 from "../components/FormPractice1";
@@ -23,8 +24,14 @@ export default function Practice() {
   }, [doesDataExist]);
 
   const [status, setStatus] = useState<number>(0);
-  const handleUpdate = (aStatus: number) => {
+  const [originalData, setOriginalData] = useState<Map<number, Inputs>>(
+    getData()
+  );
+  const [currentKey, setCurrentKey] = useState<number>(0);
+  const handleUpdate = (aStatus: number, aCurrentKey: number) => {
     setStatus(aStatus);
+    setOriginalData(getData());
+    setCurrentKey(aCurrentKey);
   };
 
   const originalTemplateData = getTemplateData();
@@ -34,27 +41,33 @@ export default function Practice() {
       case 0:
         return (
           <FormPractice0
+            data={originalData}
             templateData={originalTemplateData}
             topicData={originalTopicData}
             status={status}
             onUpdate={handleUpdate}
+            keyNumber={0}
           />
         );
       case 1:
         return (
           <FormPractice1
+            data={originalData}
             templateData={originalTemplateData}
             topicData={originalTopicData}
             status={status}
+            currentKey={currentKey}
             onUpdate={handleUpdate}
           />
         );
       case 2:
         return (
           <FormPractice2
+            data={originalData}
             templateData={originalTemplateData}
             topicData={originalTopicData}
             status={status}
+            currentKey={currentKey}
             onUpdate={handleUpdate}
           />
         );

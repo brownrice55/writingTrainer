@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import Form from "react-bootstrap/Form";
@@ -6,28 +6,35 @@ import Button from "react-bootstrap/Button";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
-import { getData } from "../utils/common";
 import FormSelectTemplateAndTopic from "./FormSelectTemplateAndTopic";
 
 type FormPractice0Props = {
+  data: Map<number, Inputs>;
   templateData: Map<number, InputsTemplate>;
   topicData: InputsTopic;
   status: number;
-  onUpdate?: (value: number) => void;
+  keyNumber: number;
+  onUpdate?: (value1: number, value2: number) => void;
 };
 export default function FormPractice0({
+  data,
   templateData,
   topicData,
   status,
+  keyNumber,
   onUpdate,
 }: FormPractice0Props) {
   const defaultValues = {
-    template: "",
+    templatekey: 1,
     topic: "",
   };
 
-  const originalData = getData();
-  const [data, setData] = useState<Map<number, Inputs>>(originalData);
+  const keysArray: number[] = data.size ? Array.from(data.keys()) : [];
+  let nextId: number = keyNumber
+    ? keyNumber
+    : data.size
+    ? keysArray[keysArray.length - 1] + 1
+    : 1;
 
   const {
     register,
@@ -40,12 +47,13 @@ export default function FormPractice0({
   });
 
   const onsubmit: SubmitHandler<Inputs> = (values) => {
-    data.set(1, values); // 仮　templateDataも全て追加する
+    const templateKey = Number(values.templatekey);
+    const selectedTemplate = templateData.get(templateKey);
+    values.template = selectedTemplate;
+    data.set(nextId, values);
     localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
-    setData(data);
-    const newStatus = status + 1;
     if (onUpdate) {
-      onUpdate(newStatus);
+      onUpdate(values.status, nextId);
     }
   };
 
@@ -68,7 +76,13 @@ export default function FormPractice0({
           register={register}
           errors={errors}
         />
-
+        <Form.Control
+          type="hidden"
+          {...register("status", {
+            valueAsNumber: true,
+          })}
+          value={status + 1}
+        />
         <div className="text-center">
           <Button variant="primary" type="submit" className="py-3 px-5">
             次へ

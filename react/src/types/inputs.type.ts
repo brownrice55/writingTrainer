@@ -1,5 +1,8 @@
+import type { InputsTemplate } from "./inputsTemplate.type";
 export type Inputs = {
-  template: string;
+  status: number;
+  templatekey: number;
+  template?: InputsTemplate;
   topic: string;
   notes: string;
   texts: string[];

@@ -135,7 +135,11 @@ export default function FormTemplate({
               <Form.Label htmlFor="paragraphs">段落数</Form.Label>
             </Col>
             <Col sm={9} className="text-start">
-              <Form.Select aria-label="paragraphs" id="paragraphs">
+              <Form.Select
+                aria-label="paragraphs"
+                id="paragraphs"
+                {...register("paragraphs")}
+              >
                 {Array(10)
                   .fill(0)
                   .map((_, index) => {

@@ -12,22 +12,37 @@ import type { InputsTopic } from "../types/inputsTopic.type";
 import FormSelectTemplateAndTopic from "./FormSelectTemplateAndTopic";
 
 type FormPractice2Props = {
+  data: Map<number, Inputs>;
   templateData: Map<number, InputsTemplate>;
   topicData: InputsTopic;
   status: number;
-  onUpdate?: (value: number) => void;
+  currentKey: number;
+  onUpdate?: (value1: number, value2: number) => void;
 };
 
 export default function FormPractice2({
+  data,
   templateData,
   topicData,
   status,
+  currentKey,
   onUpdate,
 }: FormPractice2Props) {
+  const currentData = data.get(currentKey);
+  const defaultValues = {
+    templatekey: currentData?.templatekey,
+    topic: currentData?.topic,
+  };
+  const [paragraphs, setParagraphs] = useState<number>(
+    Number(currentData?.template?.paragraphs)
+  );
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
+  const [selectedTemplate, setSelectedTemplate] = useState<InputsTemplate>();
+  const [resaveTemplate, setResaveTemplate] = useState<boolean>(false);
 
   const {
     register,
@@ -35,26 +50,31 @@ export default function FormPractice2({
     reset,
     formState: { errors, isSubmitSuccessful },
   } = useForm<Inputs>({
+    defaultValues,
     mode: "onChange",
   });
 
-  const pharagraphLength: number = 4; //仮
-
   const onsubmit: SubmitHandler<Inputs> = (values) => {
-    // data.set(1, values);
-    // localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
-    // setData(data);
-    console.log(values);
-    const newStatus = status + 1;
+    if (currentData) {
+      if (resaveTemplate) {
+        currentData.template = selectedTemplate;
+      }
+      currentData.texts = values.texts;
+      data.set(currentKey, currentData);
+      localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
+    }
     if (onUpdate) {
-      onUpdate(newStatus);
+      onUpdate(values.status, currentKey);
     }
   };
 
   const onerror: SubmitErrorHandler<Inputs> = (err) => {
     if (err.topic === undefined) {
-      // テンプレート名を保存し直す
-      // localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
+      const templateKey = err.templatekey;
+      const newlySelectedTemplate = templateData.get(Number(templateKey));
+      setParagraphs(Number(newlySelectedTemplate?.paragraphs));
+      setSelectedTemplate(newlySelectedTemplate);
+      setResaveTemplate(true);
       setShow(false);
     }
     console.log(err);
@@ -110,12 +130,12 @@ export default function FormPractice2({
         <p>メモ</p>
         <p>メモが入ります。</p>
         <Form.Group>
-          {Array(pharagraphLength)
+          {Array(paragraphs)
             .fill(0)
             .map((_, index) => {
               const name = "texts" + index;
               return (
-                <>
+                <div key={index}>
                   <Form.Control
                     id={name}
                     as="textarea"
@@ -131,11 +151,22 @@ export default function FormPractice2({
                     </Col>
                     <Col className="text-end">語</Col>
                   </Row>
-                </>
+                </div>
               );
             })}
         </Form.Group>
-        <div className="text-end">合計0語/200-240語</div>
+        <div className="text-end">
+          合計0語/{currentData?.template?.wordcount[0]}-
+          {currentData?.template?.wordcount[1]}語
+        </div>
+
+        <Form.Control
+          type="hidden"
+          {...register("status", {
+            valueAsNumber: true,
+          })}
+          value={status + 1}
+        />
 
         <div className="text-center">
           <Button

@@ -25,7 +25,11 @@ export default function FormSelectTemplateAndTopic({
             <Form.Label htmlFor="template">設定</Form.Label>
           </Col>
           <Col sm={9} className="text-start">
-            <Form.Select aria-label="template" id="template">
+            <Form.Select
+              aria-label="template"
+              id="template"
+              {...register("templatekey")}
+            >
               {[...templateData].map(([key, val]) => {
                 return (
                   <option value={key} key={key}>

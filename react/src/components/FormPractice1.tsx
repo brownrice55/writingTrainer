@@ -12,22 +12,34 @@ import type { InputsTopic } from "../types/inputsTopic.type";
 import FormSelectTemplateAndTopic from "./FormSelectTemplateAndTopic";
 
 type FormPractice1Props = {
+  data: Map<number, Inputs>;
   templateData: Map<number, InputsTemplate>;
   topicData: InputsTopic;
   status: number;
-  onUpdate?: (value: number) => void;
+  currentKey: number;
+  onUpdate?: (value1: number, value2: number) => void;
 };
 
 export default function FormPractice1({
+  data,
   templateData,
   topicData,
   status,
+  currentKey,
   onUpdate,
 }: FormPractice1Props) {
+  const currentData = data.get(currentKey);
+  const defaultValues = {
+    templatekey: currentData?.templatekey,
+    topic: currentData?.topic,
+  };
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
+  const [selectedTemplate, setSelectedTemplate] = useState<InputsTemplate>();
+  const [resaveTemplate, setResaveTemplate] = useState<boolean>(false);
 
   const {
     register,
@@ -35,24 +47,33 @@ export default function FormPractice1({
     reset,
     formState: { errors, isSubmitSuccessful },
   } = useForm<Inputs>({
+    defaultValues,
     mode: "onChange",
   });
 
   const onsubmit: SubmitHandler<Inputs> = (values) => {
-    // data.set(1, values);
-    // localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
-    // setData(data);
-    console.log(values);
-    const newStatus = status + 1;
-    if (onUpdate) {
-      onUpdate(newStatus);
+    const currentData = data.get(currentKey);
+    if (currentData) {
+      if (resaveTemplate) {
+        currentData.template = selectedTemplate;
+      }
+      currentData.notes = values.notes;
+      currentData.status = values.status;
+      data.set(currentKey, currentData);
+      localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
+      if (onUpdate) {
+        onUpdate(values.status, currentKey);
+      }
     }
   };
 
   const onerror: SubmitErrorHandler<Inputs> = (err) => {
     if (err.topic === undefined) {
-      // テンプレート名を保存し直す
-      // localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
+      const templateKey = err.templatekey;
+      if (templateData && templateKey) {
+        setSelectedTemplate(templateData.get(Number(templateKey)));
+        setResaveTemplate(true);
+      }
       setShow(false);
     }
     console.log(err);
@@ -121,6 +142,14 @@ export default function FormPractice1({
           />
           <div className="text-danger pt-2">{errors.notes?.message}</div>
         </Form.Group>
+
+        <Form.Control
+          type="hidden"
+          {...register("status", {
+            valueAsNumber: true,
+          })}
+          value={status + 1}
+        />
 
         <div className="text-center">
           <Button
