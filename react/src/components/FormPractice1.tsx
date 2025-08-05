@@ -32,31 +32,50 @@ export default function FormPractice1({
   const defaultValues = {
     templatekey: currentData?.templatekey,
     topic: currentData?.topic,
+    notes: currentData?.notes ?? "",
   };
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const [selectedTemplate, setSelectedTemplate] = useState<InputsTemplate>();
-  const [resaveTemplate, setResaveTemplate] = useState<boolean>(false);
-
   const {
     register,
     handleSubmit,
     reset,
+    trigger,
+    getValues,
     formState: { errors, isSubmitSuccessful },
   } = useForm<Inputs>({
     defaultValues,
     mode: "onChange",
   });
 
+  const handleTriggerTopic = () => {
+    const values = getValues();
+    let isChanged = false;
+    if (currentData && currentData?.templatekey !== values.templatekey) {
+      const templateKey = Number(values.templatekey);
+      const newlySelectedTemplate = templateData.get(templateKey);
+      currentData.templatekey = templateKey;
+      currentData.template = newlySelectedTemplate;
+      isChanged = true;
+    }
+    if (currentData && currentData?.topic !== values.topic) {
+      currentData.topic = values.topic;
+      isChanged = true;
+    }
+    if (currentData && isChanged) {
+      data.set(currentKey, currentData);
+      localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
+    }
+    trigger("topic");
+    setShow(false);
+  };
+
   const onsubmit: SubmitHandler<Inputs> = (values) => {
     const currentData = data.get(currentKey);
     if (currentData) {
-      if (resaveTemplate) {
-        currentData.template = selectedTemplate;
-      }
       currentData.notes = values.notes;
       currentData.status = values.status;
       data.set(currentKey, currentData);
@@ -69,11 +88,6 @@ export default function FormPractice1({
 
   const onerror: SubmitErrorHandler<Inputs> = (err) => {
     if (err.topic === undefined) {
-      const templateKey = err.templatekey;
-      if (templateData && templateKey) {
-        setSelectedTemplate(templateData.get(Number(templateKey)));
-        setResaveTemplate(true);
-      }
       setShow(false);
     }
     console.log(err);
@@ -87,9 +101,13 @@ export default function FormPractice1({
 
   return (
     <>
-      <Form id="mainForm" onSubmit={handleSubmit(onsubmit, onerror)} noValidate>
+      <Form onSubmit={handleSubmit(onsubmit, onerror)} noValidate>
         <Row className="px-2 py-3 mb-4 bg-secondary-subtle">
-          <Col>設定</Col>
+          <Col>
+            テンプレート：{currentData?.template?.templatename}
+            <br />
+            トピック：{currentData?.topic}
+          </Col>
           <Col className="text-end">
             <Button variant="secondary" onClick={handleShow}>
               変更
@@ -113,12 +131,7 @@ export default function FormPractice1({
                 <Button variant="secondary" onClick={handleClose}>
                   保存せずに閉じる
                 </Button>
-                <Button
-                  variant="primary"
-                  name="modalBtn"
-                  type="submit"
-                  form="mainForm"
-                >
+                <Button variant="primary" onClick={() => handleTriggerTopic()}>
                   保存する
                 </Button>
               </Modal.Footer>
