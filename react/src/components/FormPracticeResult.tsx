@@ -26,7 +26,7 @@ export default function FormPracticeResult({
         今回の練習を保存しない場合は、一番下の「保存しない」ボタンを押してください。
       </p>
       <Stack gap={3}>
-        <div className="bg-light pt-4 pb-2 px-4">
+        <div className="bg-secondary-subtle pt-4 pb-2 px-4">
           <p>
             設定：
             {currentData?.template?.templatename}

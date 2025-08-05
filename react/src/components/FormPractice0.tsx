@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
@@ -65,11 +67,25 @@ export default function FormPractice0({
     }
   }, [isSubmitSuccessful, reset]);
 
+  const [displayData, setDisplayData] = useState<Map<number, Inputs>>(data);
+  const handleDeleteData = (key: number) => {
+    const newData = new Map(displayData);
+    newData.delete(key);
+    setDisplayData(newData);
+    localStorage.setItem("WritingTrainer", JSON.stringify([...newData]));
+  };
+
+  const handleResumeEditing = (key: number) => {
+    const targetData = displayData.get(key);
+    if (onUpdate && targetData) {
+      onUpdate(targetData.status, key);
+    }
+  };
+
   return (
     <>
       <Form onSubmit={handleSubmit(onsubmit, onerror)} noValidate>
         <p>設定とトピックを選んで「スタート」を押してください。</p>
-
         <FormSelectTemplateAndTopic
           templateData={templateData}
           topicData={topicData}
@@ -89,6 +105,44 @@ export default function FormPractice0({
           </Button>
         </div>
       </Form>
+      {displayData.size ? (
+        <p className="mt-5">下記から、途中で止めた練習を再開できます。</p>
+      ) : (
+        ""
+      )}
+      {[...displayData].map(([key, val]) => (
+        <div key={key}>
+          {val.status !== 4 ? (
+            <Row className="bg-secondary-subtle mt-3 p-4" key={key}>
+              <Col>
+                設定：{val?.template?.templatename}
+                <br />
+                トピック：{val?.topic}
+                <br />
+                実施日時：2025/8/3 14:07
+              </Col>
+              <Col className="text-end">
+                <Button
+                  variant="primary"
+                  className="me-3 align-text-bottom"
+                  onClick={() => handleDeleteData(key)}
+                >
+                  削除する
+                </Button>
+                <Button
+                  variant="primary"
+                  className="align-text-bottom"
+                  onClick={() => handleResumeEditing(key)}
+                >
+                  再開する
+                </Button>
+              </Col>
+            </Row>
+          ) : (
+            ""
+          )}
+        </div>
+      ))}
     </>
   );
 }
