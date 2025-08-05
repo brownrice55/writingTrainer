@@ -5,11 +5,10 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Modal from "react-bootstrap/Modal";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
-import FormSelectTemplateAndTopic from "./FormSelectTemplateAndTopic";
+import ModalForSelectingTemplateAndTopic from "./ModalForSelectingTemplateAndTopic";
 
 type FormPractice2Props = {
   data: Map<number, Inputs>;
@@ -37,11 +36,6 @@ export default function FormPractice2({
   };
   const [paragraphs, setParagraphs] = useState<number>(originalParagraphs);
 
-  const [show, setShow] = useState(false);
-
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
   const {
     register,
     handleSubmit,
@@ -54,27 +48,8 @@ export default function FormPractice2({
     mode: "onChange",
   });
 
-  const handleTriggerTopic = () => {
-    const values = getValues();
-    let isChanged = false;
-    if (currentData && currentData?.templatekey !== values.templatekey) {
-      const templateKey = Number(values.templatekey);
-      const newlySelectedTemplate = templateData.get(templateKey);
-      currentData.templatekey = templateKey;
-      currentData.template = newlySelectedTemplate;
-      setParagraphs(Number(newlySelectedTemplate?.paragraphs));
-      isChanged = true;
-    }
-    if (currentData && currentData?.topic !== values.topic) {
-      currentData.topic = values.topic;
-      isChanged = true;
-    }
-    if (currentData && isChanged) {
-      data.set(currentKey, currentData);
-      localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
-    }
-    trigger("topic");
-    setShow(false);
+  const handleUpdate = (paragraphsLength: number) => {
+    setParagraphs(paragraphsLength);
   };
 
   const onsubmit: SubmitHandler<Inputs> = (values) => {
@@ -88,12 +63,7 @@ export default function FormPractice2({
     }
   };
 
-  const onerror: SubmitErrorHandler<Inputs> = (err) => {
-    if (err.topic === undefined) {
-      setShow(false);
-    }
-    console.log(err);
-  };
+  const onerror: SubmitErrorHandler<Inputs> = (err) => console.log(err);
 
   useEffect(() => {
     if (isSubmitSuccessful) {
@@ -104,42 +74,18 @@ export default function FormPractice2({
   return (
     <>
       <Form onSubmit={handleSubmit(onsubmit, onerror)} noValidate>
-        <Row className="px-2 py-3 mb-4 bg-secondary-subtle">
-          <Col>
-            テンプレート：{currentData?.template?.templatename}
-            <br />
-            トピック：{currentData?.topic}
-          </Col>
-          <Col className="text-end">
-            <Button variant="secondary" onClick={handleShow}>
-              変更
-            </Button>
-            <Modal
-              show={show}
-              onHide={handleClose}
-              backdrop="static"
-              keyboard={false}
-            >
-              <Modal.Header closeButton></Modal.Header>
-              <Modal.Body>
-                <FormSelectTemplateAndTopic
-                  templateData={templateData}
-                  topicData={topicData}
-                  register={register}
-                  errors={errors}
-                />
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>
-                  保存せずに閉じる
-                </Button>
-                <Button variant="primary" onClick={() => handleTriggerTopic()}>
-                  保存する
-                </Button>
-              </Modal.Footer>
-            </Modal>
-          </Col>
-        </Row>
+        <ModalForSelectingTemplateAndTopic
+          data={data}
+          currentData={currentData}
+          templateData={templateData}
+          topicData={topicData}
+          currentKey={currentKey}
+          register={register}
+          errors={errors}
+          getValues={getValues}
+          trigger={trigger}
+          onUpdate={handleUpdate}
+        />
         <p>時間が予定より「0秒」オーバーしています。</p>
         <p>メモ</p>
         <p>メモが入ります。</p>
