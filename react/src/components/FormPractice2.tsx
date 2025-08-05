@@ -29,13 +29,18 @@ export default function FormPractice2({
 }: FormPractice2Props) {
   const currentData = data.get(currentKey);
   const originalParagraphs = Number(currentData?.template?.paragraphs);
+
   const defaultValues = {
     templatekey: currentData?.templatekey,
     topic: currentData?.topic,
     texts: currentData?.texts ?? Array(originalParagraphs).fill(""),
   };
   const [paragraphs, setParagraphs] = useState<number>(originalParagraphs);
+  const [isProofreadingArray, setIsProofreadingArray] = useState<boolean[]>(
+    Array(paragraphs).fill(false)
+  );
 
+  const saveBtnText: string = status === 2 ? "校正をする" : "終了する";
   const {
     register,
     handleSubmit,
@@ -65,11 +70,27 @@ export default function FormPractice2({
 
   const onerror: SubmitErrorHandler<Inputs> = (err) => console.log(err);
 
+  const handleRevise = (index: number, event?: any) => {
+    // const btnName = event?.currentTarget.name;
+    const updatedIsProofreading = [...isProofreadingArray];
+    updatedIsProofreading[index] = !updatedIsProofreading[index];
+    setIsProofreadingArray(updatedIsProofreading);
+  };
+
   useEffect(() => {
     if (isSubmitSuccessful) {
       reset();
     }
   }, [isSubmitSuccessful, reset]);
+
+  useEffect(() => {
+    reset(defaultValues);
+    setIsProofreadingArray(
+      Number(status) === 2
+        ? Array(paragraphs).fill(false)
+        : Array(paragraphs).fill(true)
+    );
+  }, [data, reset]);
 
   return (
     <>
@@ -96,15 +117,45 @@ export default function FormPractice2({
               const name = "texts" + index;
               return (
                 <div key={index}>
-                  <Form.Control
-                    id={name}
-                    as="textarea"
-                    rows={8}
-                    className="my-2"
-                    {...register(`texts.${index}`, {
-                      required: "必須です",
-                    })}
-                  />
+                  <div className="position-relative">
+                    <Form.Control
+                      id={name}
+                      as="textarea"
+                      rows={8}
+                      className="my-2"
+                      disabled={isProofreadingArray[index]}
+                      {...register(`texts.${index}`, {
+                        required: "必須です",
+                      })}
+                    />
+                    {status === 3 && isProofreadingArray[index] ? (
+                      <Button
+                        onClick={() => handleRevise(index)}
+                        className="position-absolute bottom-0 end-0 me-2 mb-2"
+                      >
+                        修正する
+                      </Button>
+                    ) : status === 3 && !isProofreadingArray[index] ? (
+                      <div className="position-absolute bottom-0 end-0">
+                        <Button
+                          onClick={(e) => handleRevise(index, e)}
+                          className="me-2 mb-2"
+                          name="cancel"
+                        >
+                          キャンセル
+                        </Button>
+                        <Button
+                          onClick={(e) => handleRevise(index, e)}
+                          className="me-2 mb-2"
+                          name="revise"
+                        >
+                          修正完了
+                        </Button>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
                   <Row className="mb-4">
                     <Col className="text-danger">
                       {errors.texts?.[index]?.message}
@@ -135,7 +186,7 @@ export default function FormPractice2({
             className="py-3 px-5"
             name="btn"
           >
-            校正する
+            {saveBtnText}
           </Button>
         </div>
       </Form>

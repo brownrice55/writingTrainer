@@ -7,6 +7,7 @@ import Header from "../components/Header";
 import FormPractice0 from "../components/FormPractice0";
 import FormPractice1 from "../components/FormPractice1";
 import FormPractice2 from "../components/FormPractice2";
+import FormPracticeResult from "../components/FormPracticeResult";
 
 export default function Practice() {
   const context = useContext(DoesDataExistContext);
@@ -60,7 +61,11 @@ export default function Practice() {
             onUpdate={handleUpdate}
           />
         );
-      case 2:
+      case 4:
+        return (
+          <FormPracticeResult data={originalData} currentKey={currentKey} />
+        );
+      default:
         return (
           <FormPractice2
             data={originalData}
