@@ -6,6 +6,7 @@ import {
 
 import App from "../App";
 import Practice from "../pages/Practice";
+import PracticeList from "../pages/PracticeList";
 import TopicSettings from "../pages/TopicSettings";
 import TemplateSettings from "../pages/TemplateSettings";
 import NotFound from "../pages/NotFound";
@@ -14,6 +15,7 @@ const routesLink = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<App />}>
       <Route path="/" element={<Practice />} />
+      <Route path="/practiceList" element={<PracticeList />} />
       <Route path="/templateSettings" element={<TemplateSettings />} />
       <Route path="/topicSettings" element={<TopicSettings />} />
       <Route path="*" element={<NotFound />} />

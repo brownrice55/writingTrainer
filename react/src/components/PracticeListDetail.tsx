@@ -1,52 +1,63 @@
 import { useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import type { Inputs } from "../types/inputs.type";
-import PracticeResult from "./PracticeResult";
+import PracticeResult from "../components/PracticeResult";
 
-type FormPracticeResultProps = {
+type PracticeListDetailProps = {
   data: Map<number, Inputs>;
   currentKey: number;
+  onUpdate: (value: boolean) => void;
 };
-
-export default function FormPracticeResult({
+export default function PracticeListDetail({
   data,
   currentKey,
-}: FormPracticeResultProps) {
+  onUpdate,
+}: PracticeListDetailProps) {
   const currentData = data.get(currentKey);
-
   const handleDeleteThisPractice = () => {
     data.delete(currentKey);
     localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
+    onUpdate(true);
   };
 
   const navigate = useNavigate();
+  const handleGoToPractice = () => {
+    navigate("/");
+  };
+
   const handleGoToList = () => {
-    navigate("/practiceList");
+    onUpdate(true);
   };
 
   return (
     <>
-      <p>
-        お疲れ様でした。今回の練習を保存しました。
-        <br />
-        今回の練習を保存しない場合は、一番下の「保存しない」ボタンを押してください。
-      </p>
+      <Button variant="secondary" className="mb-4" onClick={handleGoToList}>
+        一覧に戻る
+      </Button>
       <PracticeResult currentData={currentData} />
-
       <div className="text-center">
         <Button
           variant="primary"
-          className="py-3 px-4 me-4"
+          className="py-3 px-5 me-4"
           onClick={handleGoToList}
         >
-          過去の練習一覧へ
+          一覧に戻る
         </Button>
         <Button
           variant="primary"
-          className="py-3 px-4"
+          className="py-3 px-5"
+          onClick={handleGoToPractice}
+        >
+          練習をする
+        </Button>
+      </div>
+      <div className="text-center mt-4">
+        <Button
+          variant="primary"
+          className="py-3 px-5"
           onClick={handleDeleteThisPractice}
         >
-          今回の練習を保存しない
+          この練習データを削除する
         </Button>
       </div>
     </>

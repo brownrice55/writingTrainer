@@ -68,6 +68,10 @@ export default function FormPractice0({
   }, [isSubmitSuccessful, reset]);
 
   const [displayData, setDisplayData] = useState<Map<number, Inputs>>(data);
+  const isNotCompleted = [...displayData].filter(
+    ([_, val]) => val.status !== 4
+  );
+
   const handleDeleteData = (key: number) => {
     const newData = new Map(displayData);
     newData.delete(key);
@@ -105,7 +109,7 @@ export default function FormPractice0({
           </Button>
         </div>
       </Form>
-      {displayData.size ? (
+      {isNotCompleted.length ? (
         <p className="mt-5">下記から、途中で止めた練習を再開できます。</p>
       ) : (
         ""

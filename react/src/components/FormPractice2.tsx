@@ -60,6 +60,7 @@ export default function FormPractice2({
   const onsubmit: SubmitHandler<Inputs> = (values) => {
     if (currentData) {
       currentData.texts = values.texts;
+      currentData.status = values.status;
       data.set(currentKey, currentData);
       localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
     }

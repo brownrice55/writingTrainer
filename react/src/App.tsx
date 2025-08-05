@@ -21,6 +21,11 @@ function App() {
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
               {doesDataExist ? <Nav.Link href="/">練習</Nav.Link> : ""}
+              {doesDataExist ? (
+                <Nav.Link href="/practiceList">過去の練習一覧</Nav.Link>
+              ) : (
+                ""
+              )}
               <Nav.Link href="/templateSettings">テンプレート設定</Nav.Link>
               <Nav.Link href="/topicSettings">トピック設定</Nav.Link>
             </Nav>
