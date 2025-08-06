@@ -36,7 +36,7 @@ export default function PracticeList() {
                   <br />
                   トピック：{val?.topic}
                   <br />
-                  実施日時：2025/8/3 14:07
+                  実施日時：{val?.implementationDate}
                 </Col>
                 <Col className="text-end">
                   <Button

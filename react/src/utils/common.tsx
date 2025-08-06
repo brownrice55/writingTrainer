@@ -39,3 +39,37 @@ export function getTopics(): InputsTopic {
     : [{ topic: "", topicId: 0 }];
   return { topics: data };
 }
+
+export const getTime = (aTime: number) => {
+  const date = new Date(aTime);
+  const dateY = date.getFullYear();
+  const dateM = date.getMonth() + 1;
+  const dateD = date.getDate();
+  const dateH = date.getHours();
+  const dateMi = date.getMinutes();
+  return [dateY, dateM, dateD, dateH, dateMi];
+};
+
+export const getImplementationDate = (
+  aStartTimeArray: number[],
+  aEndTimeArray?: number[]
+) => {
+  const displayStartTime = `${aStartTimeArray[0]}年${aStartTimeArray[1]}月${aStartTimeArray[2]}日${aStartTimeArray[3]}時${aStartTimeArray[4]}分`;
+
+  let displayEndTime = "";
+  if (aEndTimeArray) {
+    const getDisplayEndTime = (aIndex: number, aUnit: string) => {
+      return aStartTimeArray[aIndex] == aEndTimeArray[aIndex]
+        ? ""
+        : aEndTimeArray[aIndex] + aUnit;
+    };
+    const unitArray = ["年", "月", "日", "時"];
+    unitArray.forEach((val, index) => {
+      displayEndTime += getDisplayEndTime(index, val);
+    });
+    displayEndTime += displayEndTime += `${aEndTimeArray[4]}分`;
+  }
+  return aEndTimeArray
+    ? `${displayStartTime}〜${displayEndTime}`
+    : displayStartTime;
+};

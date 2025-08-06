@@ -18,7 +18,7 @@ export default function PracticeResult({ currentData }: PracticeResultProps) {
             トピック：
             {currentData?.topic}
           </p>
-          <p>実施日時：</p>
+          <p>実施日時：{currentData?.implementationDate}</p>
           <p>所要時間：</p>
         </div>
         <div className="p-2">{currentData?.notes}</div>

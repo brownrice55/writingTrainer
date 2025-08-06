@@ -5,6 +5,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import { getTime, getImplementationDate } from "../utils/common";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
@@ -72,6 +73,14 @@ export default function FormPractice2({
       currentData.texts = values.texts;
       currentData.status = values.status;
       currentData.words = wordCountArray;
+      if (currentData.status === 4) {
+        const endTime = Date.now();
+        const endTimeArray = getTime(endTime);
+        currentData.implementationDate = getImplementationDate(
+          currentData.startTimeArray,
+          endTimeArray
+        );
+      }
       data.set(currentKey, currentData);
       localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
     }

@@ -5,6 +5,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import { getTime, getImplementationDate } from "../utils/common";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
@@ -52,6 +53,12 @@ export default function FormPractice0({
     const templateKey = Number(values.templatekey);
     const selectedTemplate = templateData.get(templateKey);
     values.template = selectedTemplate;
+
+    const startTime = Date.now();
+    const startTimeArray = getTime(startTime);
+
+    values.startTimeArray = startTimeArray;
+
     data.set(nextId, values);
     localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
     if (onUpdate) {
@@ -123,7 +130,7 @@ export default function FormPractice0({
                 <br />
                 トピック：{val?.topic}
                 <br />
-                実施日時：2025/8/3 14:07
+                実施日時：{getImplementationDate(val.startTimeArray)}
               </Col>
               <Col className="text-end">
                 <Button
