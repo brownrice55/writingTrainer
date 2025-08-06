@@ -40,6 +40,15 @@ export default function FormPractice2({
     Array(paragraphs).fill(false)
   );
 
+  const [wordCountArray, setWordCountArray] = useState<number[]>(
+    currentData && currentData.words
+      ? currentData?.words
+      : Array(paragraphs).fill(0)
+  );
+  const totalWordCount: number = wordCountArray.reduce((acc, val) => {
+    return acc + val;
+  });
+
   const saveBtnText: string = status === 2 ? "校正をする" : "終了する";
   const {
     register,
@@ -62,6 +71,7 @@ export default function FormPractice2({
     if (currentData) {
       currentData.texts = values.texts;
       currentData.status = values.status;
+      currentData.words = wordCountArray;
       data.set(currentKey, currentData);
       localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
     }
@@ -80,6 +90,13 @@ export default function FormPractice2({
     const updatedIsProofreading = [...isProofreadingArray];
     updatedIsProofreading[index] = !updatedIsProofreading[index];
     setIsProofreadingArray(updatedIsProofreading);
+  };
+
+  const handleCountWordNum = (e: any, index: number) => {
+    const valueArray = e.target.value.split(/\s+/);
+    const newWordCountArray = [...wordCountArray];
+    newWordCountArray[index] = valueArray.length;
+    setWordCountArray(newWordCountArray);
   };
 
   useEffect(() => {
@@ -131,6 +148,7 @@ export default function FormPractice2({
                       disabled={isProofreadingArray[index]}
                       {...register(`texts.${index}`, {
                         required: "必須です",
+                        onChange: (e) => handleCountWordNum(e, index),
                       })}
                     />
                     {status === 3 && isProofreadingArray[index] ? (
@@ -165,14 +183,14 @@ export default function FormPractice2({
                     <Col className="text-danger">
                       {errors.texts?.[index]?.message}
                     </Col>
-                    <Col className="text-end">語</Col>
+                    <Col className="text-end">{wordCountArray[index]}語</Col>
                   </Row>
                 </div>
               );
             })}
         </Form.Group>
         <div className="text-end">
-          合計0語/{currentData?.template?.wordcount[0]}-
+          合計{totalWordCount}語/{currentData?.template?.wordcount[0]}-
           {currentData?.template?.wordcount[1]}語
         </div>
 

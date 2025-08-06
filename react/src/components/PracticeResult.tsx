@@ -24,11 +24,9 @@ export default function PracticeResult({ currentData }: PracticeResultProps) {
         <div className="p-2">{currentData?.notes}</div>
         {currentData?.texts.map((val, index) => {
           return (
-            <>
-              <div className="p-2" key={index}>
-                {val}
-              </div>
-            </>
+            <div key={index}>
+              <div className="p-2">{val}</div>
+            </div>
           );
         })}
       </Stack>
