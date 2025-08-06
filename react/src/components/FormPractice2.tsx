@@ -45,6 +45,7 @@ export default function FormPractice2({
     register,
     handleSubmit,
     reset,
+    resetField,
     getValues,
     trigger,
     formState: { errors, isSubmitSuccessful },
@@ -72,7 +73,10 @@ export default function FormPractice2({
   const onerror: SubmitErrorHandler<Inputs> = (err) => console.log(err);
 
   const handleRevise = (index: number, event?: any) => {
-    // const btnName = event?.currentTarget.name;
+    const btnName = event?.currentTarget.name;
+    if (btnName === "cancel") {
+      resetField(`texts.${index}`);
+    }
     const updatedIsProofreading = [...isProofreadingArray];
     updatedIsProofreading[index] = !updatedIsProofreading[index];
     setIsProofreadingArray(updatedIsProofreading);
