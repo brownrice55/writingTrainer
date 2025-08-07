@@ -73,3 +73,52 @@ export const getImplementationDate = (
     ? `${displayStartTime}〜${displayEndTime}`
     : displayStartTime;
 };
+
+import React from "react";
+export const getRemainingTime = (
+  aCurrentData: Inputs,
+  aSetTimerId: React.Dispatch<React.SetStateAction<number>>,
+  aSetDisplayRemainingTime: React.Dispatch<React.SetStateAction<string>>
+) => {
+  if (!aCurrentData) {
+    return;
+  }
+  let isPlus = true;
+  let startTime = aCurrentData.startTime;
+  const settingTime =
+    Number(aCurrentData?.template?.time[aCurrentData.status - 1]) * 60000;
+
+  let remainingTime;
+  let timeTaken;
+  if (settingTime >= Date.now() - startTime) {
+    timeTaken = Date.now() - startTime;
+    remainingTime = settingTime - timeTaken;
+    isPlus = true;
+  } else {
+    remainingTime = Date.now() - startTime - settingTime;
+    timeTaken = settingTime + remainingTime;
+    isPlus = false;
+  }
+
+  const diff = new Date(remainingTime);
+  const m = String(diff.getMinutes());
+  const s = String(diff.getSeconds());
+  let displayDiff = m != "0" ? m + "分" + s + "秒" : s + "秒";
+
+  if (aCurrentData.status === 1) {
+    displayDiff = isPlus
+      ? "方向性・構成を決める残り時間「" + displayDiff + "」です。"
+      : "時間が予定より「" + displayDiff + "」オーバーしています。";
+  } else if (aCurrentData.status === 2) {
+    displayDiff = isPlus
+      ? "内容を書く残り時間「" + displayDiff + "」です。"
+      : "時間が予定より「" + displayDiff + "」オーバーしています。";
+  } else {
+    displayDiff = isPlus
+      ? "校正をする残り時間「" + displayDiff + "」です。"
+      : "時間が予定より「" + displayDiff + "」オーバーしています。";
+  }
+  aSetDisplayRemainingTime(displayDiff);
+  aSetTimerId(setTimeout(getRemainingTime, 1000));
+  startTime = Date.now();
+};
