@@ -12,4 +12,5 @@ export type Inputs = {
   startTime: number;
   startTimeArray: number[];
   implementationDate: string;
+  timeTaken: number[];
 };

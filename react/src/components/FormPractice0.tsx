@@ -60,6 +60,8 @@ export default function FormPractice0({
     values.startTime = startTime;
     values.startTimeArray = startTimeArray;
 
+    values.timeTaken = Array(3).fill(0);
+
     data.set(nextId, values);
     localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
     if (onUpdate) {

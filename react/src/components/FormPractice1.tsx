@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import Form from "react-bootstrap/Form";
@@ -44,15 +44,34 @@ export default function FormPractice1({
     mode: "onChange",
   });
 
-  const [displayRemainingTime, setDisplayRemainingTime] = useState<string>("");
-  const [timerId, setTimerId] = useState<number>(0);
+  const settingTime1 = Number(currentData?.template?.time[1]) * 60;
+  const getDisplayRemainingTime = (aSeconds: number) => {
+    const seconds = Math.abs(aSeconds);
+    const displayTime =
+      seconds < 60
+        ? `${seconds}秒`
+        : seconds % 60
+        ? Math.floor(seconds / 60) + "分" + (seconds % 60) + "秒"
+        : Math.floor(seconds / 60) + "分";
+    if (aSeconds > 0) {
+      return `方向性・構成を決める残り時間「${displayTime}」です。`;
+    }
+    return `時間が予定より「${displayTime}」オーバーしています。`;
+  };
+
+  const [timeTaken, setTimeTaken] = useState<number>(0);
+  const [displayRemainingTime, setDisplayRemainingTime] = useState<string>(
+    getDisplayRemainingTime(settingTime1)
+  );
+  const timerId = useRef<number>(0);
 
   const onsubmit: SubmitHandler<Inputs> = (values) => {
-    clearTimeout(timerId);
+    clearTimeout(timerId.current);
     const currentData = data.get(currentKey);
     if (currentData) {
       currentData.notes = values.notes;
       currentData.status = values.status;
+      currentData.timeTaken[0] = timeTaken;
       data.set(currentKey, currentData);
       localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
       if (onUpdate) {
@@ -63,50 +82,6 @@ export default function FormPractice1({
 
   const onerror: SubmitErrorHandler<Inputs> = (err) => console.log(err);
 
-  const getRemainingTime = (aCurrentData: Inputs) => {
-    if (!aCurrentData) {
-      return;
-    }
-    let isPlus = true;
-    let startTime = aCurrentData.startTime;
-    const settingTime =
-      Number(aCurrentData?.template?.time[aCurrentData.status]) * 60000;
-
-    let remainingTime;
-    let timeTaken;
-    if (settingTime >= Date.now() - startTime) {
-      timeTaken = Date.now() - startTime;
-      remainingTime = settingTime - timeTaken;
-      isPlus = true;
-    } else {
-      remainingTime = Date.now() - startTime - settingTime;
-      timeTaken = settingTime + remainingTime;
-      isPlus = false;
-    }
-
-    const diff = new Date(remainingTime);
-    const m = String(diff.getMinutes());
-    const s = String(diff.getSeconds());
-    let displayDiff = m != "0" ? m + "分" + s + "秒" : s + "秒";
-
-    if (aCurrentData.status === 1) {
-      displayDiff = isPlus
-        ? "方向性・構成を決める残り時間「" + displayDiff + "」です。"
-        : "時間が予定より「" + displayDiff + "」オーバーしています。";
-    } else if (aCurrentData.status === 2) {
-      displayDiff = isPlus
-        ? "内容を書く残り時間「" + displayDiff + "」です。"
-        : "時間が予定より「" + displayDiff + "」オーバーしています。";
-    } else {
-      displayDiff = isPlus
-        ? "校正をする残り時間「" + displayDiff + "」です。"
-        : "時間が予定より「" + displayDiff + "」オーバーしています。";
-    }
-    setDisplayRemainingTime(displayDiff);
-    setTimerId(setTimeout(getRemainingTime, 1000));
-    startTime = Date.now();
-  };
-
   useEffect(() => {
     if (isSubmitSuccessful) {
       reset();
@@ -114,10 +89,16 @@ export default function FormPractice1({
   }, [isSubmitSuccessful, reset]);
 
   useEffect(() => {
-    if (currentData) {
-      getRemainingTime(currentData);
-    }
-  }, [timerId]);
+    timerId.current = setTimeout(() => {
+      const newTimeTaken = timeTaken + 1;
+      const newRemainingTime = settingTime1 - newTimeTaken;
+      setTimeTaken(newTimeTaken);
+      setDisplayRemainingTime(getDisplayRemainingTime(newRemainingTime));
+    }, 1000);
+    return () => {
+      clearTimeout(timerId.current);
+    };
+  }, [timeTaken]);
 
   return (
     <>
