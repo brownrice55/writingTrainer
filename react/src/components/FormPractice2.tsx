@@ -5,11 +5,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import {
-  getTime,
-  getImplementationDate,
-  getRemainingTime,
-} from "../utils/common";
+import { getTime, getImplementationDate } from "../utils/common";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
@@ -73,7 +69,6 @@ export default function FormPractice2({
   };
 
   const onsubmit: SubmitHandler<Inputs> = (values) => {
-    clearTimeout(timerId);
     if (currentData) {
       currentData.texts = values.texts;
       currentData.status = values.status;
@@ -128,15 +123,6 @@ export default function FormPractice2({
     );
   }, [data, reset]);
 
-  const [displayRemainingTime, setDisplayRemainingTime] = useState<string>("");
-  const [timerId, setTimerId] = useState<number>(0);
-
-  useEffect(() => {
-    if (currentData) {
-      getRemainingTime(currentData, setTimerId, setDisplayRemainingTime);
-    }
-  }, [timerId, currentData]);
-
   return (
     <>
       <Form onSubmit={handleSubmit(onsubmit, onerror)} noValidate>
@@ -152,9 +138,9 @@ export default function FormPractice2({
           trigger={trigger}
           onUpdate={handleUpdate}
         />
-        <p>{displayRemainingTime}</p>
+        <p>時間が予定より「0秒」オーバーしています。</p>
         <p>メモ</p>
-        <p>{currentData?.notes}</p>
+        <p>メモが入ります。</p>
         <Form.Group>
           {Array(paragraphs)
             .fill(0)

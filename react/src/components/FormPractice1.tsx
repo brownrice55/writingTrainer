@@ -6,7 +6,6 @@ import Button from "react-bootstrap/Button";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
-import { getRemainingTime } from "../utils/common";
 import ModalForSelectingTemplateAndTopic from "./ModalForSelectingTemplateAndTopic";
 
 type FormPractice1Props = {
@@ -64,6 +63,50 @@ export default function FormPractice1({
 
   const onerror: SubmitErrorHandler<Inputs> = (err) => console.log(err);
 
+  const getRemainingTime = (aCurrentData: Inputs) => {
+    if (!aCurrentData) {
+      return;
+    }
+    let isPlus = true;
+    let startTime = aCurrentData.startTime;
+    const settingTime =
+      Number(aCurrentData?.template?.time[aCurrentData.status]) * 60000;
+
+    let remainingTime;
+    let timeTaken;
+    if (settingTime >= Date.now() - startTime) {
+      timeTaken = Date.now() - startTime;
+      remainingTime = settingTime - timeTaken;
+      isPlus = true;
+    } else {
+      remainingTime = Date.now() - startTime - settingTime;
+      timeTaken = settingTime + remainingTime;
+      isPlus = false;
+    }
+
+    const diff = new Date(remainingTime);
+    const m = String(diff.getMinutes());
+    const s = String(diff.getSeconds());
+    let displayDiff = m != "0" ? m + "分" + s + "秒" : s + "秒";
+
+    if (aCurrentData.status === 1) {
+      displayDiff = isPlus
+        ? "方向性・構成を決める残り時間「" + displayDiff + "」です。"
+        : "時間が予定より「" + displayDiff + "」オーバーしています。";
+    } else if (aCurrentData.status === 2) {
+      displayDiff = isPlus
+        ? "内容を書く残り時間「" + displayDiff + "」です。"
+        : "時間が予定より「" + displayDiff + "」オーバーしています。";
+    } else {
+      displayDiff = isPlus
+        ? "校正をする残り時間「" + displayDiff + "」です。"
+        : "時間が予定より「" + displayDiff + "」オーバーしています。";
+    }
+    setDisplayRemainingTime(displayDiff);
+    setTimerId(setTimeout(getRemainingTime, 1000));
+    startTime = Date.now();
+  };
+
   useEffect(() => {
     if (isSubmitSuccessful) {
       reset();
@@ -72,9 +115,9 @@ export default function FormPractice1({
 
   useEffect(() => {
     if (currentData) {
-      getRemainingTime(currentData, setTimerId, setDisplayRemainingTime);
+      getRemainingTime(currentData);
     }
-  }, [timerId, currentData]);
+  }, [timerId]);
 
   return (
     <>
