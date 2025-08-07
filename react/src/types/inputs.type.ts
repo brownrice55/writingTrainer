@@ -9,6 +9,7 @@ export type Inputs = {
   time: number[];
   timeForDisplay: string[];
   words: number[];
+  startTime: number;
   startTimeArray: number[];
   implementationDate: string;
 };

@@ -57,6 +57,7 @@ export default function FormPractice0({
     const startTime = Date.now();
     const startTimeArray = getTime(startTime);
 
+    values.startTime = startTime;
     values.startTimeArray = startTimeArray;
 
     data.set(nextId, values);

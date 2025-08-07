@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import Form from "react-bootstrap/Form";
@@ -44,7 +44,11 @@ export default function FormPractice1({
     mode: "onChange",
   });
 
+  const [displayRemainingTime, setDisplayRemainingTime] = useState<string>("");
+  const [timerId, setTimerId] = useState<number>(0);
+
   const onsubmit: SubmitHandler<Inputs> = (values) => {
+    clearTimeout(timerId);
     const currentData = data.get(currentKey);
     if (currentData) {
       currentData.notes = values.notes;
@@ -59,11 +63,61 @@ export default function FormPractice1({
 
   const onerror: SubmitErrorHandler<Inputs> = (err) => console.log(err);
 
+  const getRemainingTime = (aCurrentData: Inputs) => {
+    if (!aCurrentData) {
+      return;
+    }
+    let isPlus = true;
+    let startTime = aCurrentData.startTime;
+    const settingTime =
+      Number(aCurrentData?.template?.time[aCurrentData.status]) * 60000;
+
+    let remainingTime;
+    let timeTaken;
+    if (settingTime >= Date.now() - startTime) {
+      timeTaken = Date.now() - startTime;
+      remainingTime = settingTime - timeTaken;
+      isPlus = true;
+    } else {
+      remainingTime = Date.now() - startTime - settingTime;
+      timeTaken = settingTime + remainingTime;
+      isPlus = false;
+    }
+
+    const diff = new Date(remainingTime);
+    const m = String(diff.getMinutes());
+    const s = String(diff.getSeconds());
+    let displayDiff = m != "0" ? m + "分" + s + "秒" : s + "秒";
+
+    if (aCurrentData.status === 1) {
+      displayDiff = isPlus
+        ? "方向性・構成を決める残り時間「" + displayDiff + "」です。"
+        : "時間が予定より「" + displayDiff + "」オーバーしています。";
+    } else if (aCurrentData.status === 2) {
+      displayDiff = isPlus
+        ? "内容を書く残り時間「" + displayDiff + "」です。"
+        : "時間が予定より「" + displayDiff + "」オーバーしています。";
+    } else {
+      displayDiff = isPlus
+        ? "校正をする残り時間「" + displayDiff + "」です。"
+        : "時間が予定より「" + displayDiff + "」オーバーしています。";
+    }
+    setDisplayRemainingTime(displayDiff);
+    setTimerId(setTimeout(getRemainingTime, 1000));
+    startTime = Date.now();
+  };
+
   useEffect(() => {
     if (isSubmitSuccessful) {
       reset();
     }
   }, [isSubmitSuccessful, reset]);
+
+  useEffect(() => {
+    if (currentData) {
+      getRemainingTime(currentData);
+    }
+  }, [timerId]);
 
   return (
     <>
@@ -82,7 +136,7 @@ export default function FormPractice1({
         <p>
           まず、方向性、構成を決めます。
           <br />
-          方向性・構成を決める残り時間「0秒」です。
+          {displayRemainingTime}
         </p>
         <Form.Group className="py-3">
           <Form.Label htmlFor="notes">メモ</Form.Label>
