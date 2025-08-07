@@ -73,3 +73,32 @@ export const getImplementationDate = (
     ? `${displayStartTime}〜${displayEndTime}`
     : displayStartTime;
 };
+
+export const getDisplayRemainingTimeOrTimeTaken = (
+  aSeconds: number | number[] | undefined,
+  aStatus: number,
+  aRequiredValue: string
+) => {
+  const getDisplayTime = (aTargetSeconds: number) => {
+    const seconds = Math.abs(aTargetSeconds);
+    return seconds < 60
+      ? `${seconds}秒`
+      : seconds % 60
+      ? Math.floor(seconds / 60) + "分" + (seconds % 60) + "秒"
+      : Math.floor(seconds / 60) + "分";
+  };
+  if (aRequiredValue === "remainingTime" && typeof aSeconds === "number") {
+    const plusTextArray = ["方向性・構成を決める", "内容を書く", "校正をする"];
+    if (typeof aSeconds === "number" && aSeconds > 0) {
+      return `${plusTextArray[aStatus - 1]}残り時間「${getDisplayTime(
+        aSeconds
+      )}」です。`;
+    }
+    return `時間が予定より「${getDisplayTime(aSeconds)}」オーバーしています。`;
+  }
+  if (aRequiredValue === "timeTaken" && Array.isArray(aSeconds)) {
+    return `メモ${getDisplayTime(aSeconds[0])}、ライティング${getDisplayTime(
+      aSeconds[1]
+    )}、校正${getDisplayTime(aSeconds[2])}`;
+  }
+};

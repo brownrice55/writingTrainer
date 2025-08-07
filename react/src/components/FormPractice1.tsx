@@ -6,6 +6,7 @@ import Button from "react-bootstrap/Button";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
+import { getDisplayRemainingTimeOrTimeTaken } from "../utils/common";
 import ModalForSelectingTemplateAndTopic from "./ModalForSelectingTemplateAndTopic";
 
 type FormPractice1Props = {
@@ -44,25 +45,17 @@ export default function FormPractice1({
     mode: "onChange",
   });
 
-  const settingTime1 = Number(currentData?.template?.time[1]) * 60;
-  const getDisplayRemainingTime = (aSeconds: number) => {
-    const seconds = Math.abs(aSeconds);
-    const displayTime =
-      seconds < 60
-        ? `${seconds}秒`
-        : seconds % 60
-        ? Math.floor(seconds / 60) + "分" + (seconds % 60) + "秒"
-        : Math.floor(seconds / 60) + "分";
-    if (aSeconds > 0) {
-      return `方向性・構成を決める残り時間「${displayTime}」です。`;
-    }
-    return `時間が予定より「${displayTime}」オーバーしています。`;
-  };
+  const settingTime = Number(currentData?.template?.time[1]) * 60;
 
   const [timeTaken, setTimeTaken] = useState<number>(0);
-  const [displayRemainingTime, setDisplayRemainingTime] = useState<string>(
-    getDisplayRemainingTime(settingTime1)
+  const initialRemainingTime = getDisplayRemainingTimeOrTimeTaken(
+    settingTime,
+    status,
+    "remainingTime"
   );
+  const [displayRemainingTime, setDisplayRemainingTime] = useState<
+    string | undefined
+  >(initialRemainingTime);
   const timerId = useRef<number>(0);
 
   const onsubmit: SubmitHandler<Inputs> = (values) => {
@@ -91,9 +84,15 @@ export default function FormPractice1({
   useEffect(() => {
     timerId.current = setTimeout(() => {
       const newTimeTaken = timeTaken + 1;
-      const newRemainingTime = settingTime1 - newTimeTaken;
+      const newRemainingTime = settingTime - newTimeTaken;
       setTimeTaken(newTimeTaken);
-      setDisplayRemainingTime(getDisplayRemainingTime(newRemainingTime));
+      setDisplayRemainingTime(
+        getDisplayRemainingTimeOrTimeTaken(
+          newRemainingTime,
+          status,
+          "remainingTime"
+        )
+      );
     }, 1000);
     return () => {
       clearTimeout(timerId.current);

@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { getTime, getImplementationDate } from "../utils/common";
+import {
+  getTime,
+  getImplementationDate,
+  getDisplayRemainingTimeOrTimeTaken,
+} from "../utils/common";
 import type { Inputs } from "../types/inputs.type";
 import type { InputsTemplate } from "../types/inputsTemplate.type";
 import type { InputsTopic } from "../types/inputsTopic.type";
@@ -30,6 +34,19 @@ export default function FormPractice2({
 }: FormPractice2Props) {
   const currentData = data.get(currentKey);
   const originalParagraphs = Number(currentData?.template?.paragraphs);
+
+  let settingTime = Number(currentData?.template?.time[status]) * 60;
+
+  const [timeTaken, setTimeTaken] = useState<number>(0);
+  const initialRemainingTime = getDisplayRemainingTimeOrTimeTaken(
+    settingTime,
+    status,
+    "remainingTime"
+  );
+  const [displayRemainingTime, setDisplayRemainingTime] = useState<
+    string | undefined
+  >(initialRemainingTime);
+  const timerId = useRef<number>(0);
 
   const defaultValues = {
     templatekey: currentData?.templatekey,
@@ -69,10 +86,12 @@ export default function FormPractice2({
   };
 
   const onsubmit: SubmitHandler<Inputs> = (values) => {
+    clearTimeout(timerId.current);
     if (currentData) {
       currentData.texts = values.texts;
       currentData.status = values.status;
       currentData.words = wordCountArray;
+      currentData.timeTaken[status - 1] = timeTaken;
       if (currentData.status === 4) {
         const endTime = Date.now();
         const endTimeArray = getTime(endTime);
@@ -84,6 +103,11 @@ export default function FormPractice2({
       data.set(currentKey, currentData);
       localStorage.setItem("WritingTrainer", JSON.stringify([...data]));
     }
+    setTimeTaken(0);
+    settingTime = Number(currentData?.template?.time[status]) * 60;
+    setDisplayRemainingTime(
+      getDisplayRemainingTimeOrTimeTaken(settingTime, status, "remainingTime")
+    );
     if (onUpdate) {
       onUpdate(values.status, currentKey);
     }
@@ -123,6 +147,24 @@ export default function FormPractice2({
     );
   }, [data, reset]);
 
+  useEffect(() => {
+    timerId.current = setTimeout(() => {
+      const newTimeTaken = timeTaken + 1;
+      const newRemainingTime = settingTime - newTimeTaken;
+      setTimeTaken(newTimeTaken);
+      setDisplayRemainingTime(
+        getDisplayRemainingTimeOrTimeTaken(
+          newRemainingTime,
+          status,
+          "remainingTime"
+        )
+      );
+    }, 1000);
+    return () => {
+      clearTimeout(timerId.current);
+    };
+  }, [timeTaken, status]);
+
   return (
     <>
       <Form onSubmit={handleSubmit(onsubmit, onerror)} noValidate>
@@ -138,9 +180,9 @@ export default function FormPractice2({
           trigger={trigger}
           onUpdate={handleUpdate}
         />
-        <p>時間が予定より「0秒」オーバーしています。</p>
+        <p>{displayRemainingTime}</p>
         <p>メモ</p>
-        <p>メモが入ります。</p>
+        <p>{currentData?.notes}</p>
         <Form.Group>
           {Array(paragraphs)
             .fill(0)
