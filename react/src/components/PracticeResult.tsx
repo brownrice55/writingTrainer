@@ -35,6 +35,10 @@ export default function PracticeResult({ currentData }: PracticeResultProps) {
             </div>
           );
         })}
+        <div className="text-end my-3">
+          合計{currentData?.totalWords}語/{currentData?.template?.wordcount[0]}-
+          {currentData?.template?.wordcount[1]}語
+        </div>
       </Stack>
     </>
   );

@@ -90,6 +90,7 @@ export default function FormPractice2({
     if (currentData) {
       currentData.texts = values.texts;
       currentData.status = values.status;
+      currentData.totalWords = totalWordCount;
       currentData.words = wordCountArray;
       currentData.timeTaken[status - 1] = timeTaken;
       if (currentData.status === 4) {
@@ -123,6 +124,8 @@ export default function FormPractice2({
     const updatedIsProofreading = [...isProofreadingArray];
     updatedIsProofreading[index] = !updatedIsProofreading[index];
     setIsProofreadingArray(updatedIsProofreading);
+    const doesFalseExist = updatedIsProofreading.filter((val) => val === false);
+    setIsDisabled(doesFalseExist.length ? true : false);
   };
 
   const handleCountWordNum = (e: any, index: number) => {
@@ -164,6 +167,19 @@ export default function FormPractice2({
       clearTimeout(timerId.current);
     };
   }, [timeTaken, status]);
+
+  const [alert, setAlert] = useState<string>("");
+  const [isDisabled, setIsDisabled] = useState<boolean>(true);
+
+  useEffect(() => {
+    const alertText =
+      totalWordCount < Number(currentData?.template?.wordcount[0]) ||
+      totalWordCount > Number(currentData?.template?.wordcount[1])
+        ? `合計${currentData?.template?.wordcount[0]}〜${currentData?.template?.wordcount[1]}語以内で書いてください。`
+        : "";
+    setAlert(alertText);
+    setIsDisabled(alertText ? true : false);
+  }, [totalWordCount]);
 
   return (
     <>
@@ -253,12 +269,15 @@ export default function FormPractice2({
           value={status + 1}
         />
 
+        <div className="text-danger mt-2 mb-4">{alert}</div>
+
         <div className="text-center">
           <Button
             variant="primary"
             type="submit"
             className="py-3 px-5"
             name="btn"
+            disabled={isDisabled}
           >
             {saveBtnText}
           </Button>
