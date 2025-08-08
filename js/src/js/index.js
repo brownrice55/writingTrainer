@@ -868,7 +868,7 @@
         displayDiff = (this.isPlus) ? '校正をする残り時間「' + displayDiff + '」です。' : '時間が予定より「' + displayDiff + '」オーバーしています。';
         this.practiceProofreadingTimeElm.innerHTML = displayDiff;
       }
-      this.timerID = setTimeout(getRemainingTime, 30);
+      this.timerID = setTimeout(getRemainingTime, 1000);
     };
 
     this.startTime = Date.now();
