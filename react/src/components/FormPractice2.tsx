@@ -120,6 +120,10 @@ export default function FormPractice2({
     const btnName = event?.currentTarget.name;
     if (btnName === "cancel") {
       resetField(`texts.${index}`);
+      const values = getValues();
+      const newWordCountArray = [...wordCountArray];
+      newWordCountArray[index] = values?.texts[index].split(/\s+/).length;
+      setWordCountArray(newWordCountArray);
     }
     const updatedIsProofreading = [...isProofreadingArray];
     updatedIsProofreading[index] = !updatedIsProofreading[index];
@@ -129,9 +133,9 @@ export default function FormPractice2({
   };
 
   const handleCountWordNum = (e: any, index: number) => {
-    const valueArray = e.target.value.split(/\s+/);
+    const valueArray = e.target.value ? e.target.value.split(/\s+/) : "";
     const newWordCountArray = [...wordCountArray];
-    newWordCountArray[index] = valueArray.length;
+    newWordCountArray[index] = valueArray ? valueArray.length : 0;
     setWordCountArray(newWordCountArray);
   };
 
@@ -238,6 +242,7 @@ export default function FormPractice2({
                           onClick={(e) => handleRevise(index, e)}
                           className="me-2 mb-2"
                           name="revise"
+                          disabled={alert ? true : false}
                         >
                           修正完了
                         </Button>
