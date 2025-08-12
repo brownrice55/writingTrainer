@@ -88,7 +88,7 @@ export default function FormPractice2({
   const onsubmit: SubmitHandler<Inputs> = (values) => {
     clearTimeout(timerId.current);
     if (currentData) {
-      currentData.texts = values.texts;
+      currentData.texts = values.texts.filter((val) => val);
       currentData.status = values.status;
       currentData.totalWords = totalWordCount;
       currentData.words = wordCountArray;
