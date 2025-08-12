@@ -27,6 +27,9 @@ export default function PracticeListDetail({
 
   const handleGoToList = () => {
     onUpdate(true);
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
   };
 
   return (

@@ -12,6 +12,11 @@ function App() {
   }
   const { doesDataExist } = context;
 
+  const handleStopVoice = () => {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
+  };
   return (
     <>
       <Navbar expand="lg" className="bg-body-tertiary">
@@ -20,14 +25,26 @@ function App() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              {doesDataExist ? <Nav.Link href="/">練習</Nav.Link> : ""}
               {doesDataExist ? (
-                <Nav.Link href="/practiceList">過去の練習一覧</Nav.Link>
+                <Nav.Link href="/" onClick={handleStopVoice}>
+                  練習
+                </Nav.Link>
               ) : (
                 ""
               )}
-              <Nav.Link href="/templateSettings">テンプレート設定</Nav.Link>
-              <Nav.Link href="/topicSettings">トピック設定</Nav.Link>
+              {doesDataExist ? (
+                <Nav.Link href="/practiceList" onClick={handleStopVoice}>
+                  過去の練習一覧
+                </Nav.Link>
+              ) : (
+                ""
+              )}
+              <Nav.Link href="/templateSettings" onClick={handleStopVoice}>
+                テンプレート設定
+              </Nav.Link>
+              <Nav.Link href="/topicSettings" onClick={handleStopVoice}>
+                トピック設定
+              </Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>
