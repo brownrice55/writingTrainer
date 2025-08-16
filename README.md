@@ -68,4 +68,6 @@ Could you please let me know if there are any errors in my English or code?</p>
 <ul>
 <li>https://getbootstrap.jp/</li>
 <li>https://developer.mozilla.org/ja/docs/Web/HTML/Reference/Elements/datalist</li>
+<li>https://zenn.dev/koji_koji_koji/articles/f72035c0e76b7a</li>
+<li>https://qiita.com/yuta4j1/items/67beea7974ef29d380cf</li>
 </ul>
